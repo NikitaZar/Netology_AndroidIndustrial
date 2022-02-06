@@ -53,12 +53,16 @@ class FeedFragment : Fragment() {
             }
         })
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner, { state ->
+        viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.emptyText.isVisible = state.empty
-        })
+
+            if (!state.loading) {
+                binding.swipeRefresh.isRefreshing = false
+            }
+        }
 
         binding.retryButton.setOnClickListener {
             viewModel.loadPosts()
@@ -66,6 +70,10 @@ class FeedFragment : Fragment() {
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.loadPosts()
         }
 
         return binding.root
