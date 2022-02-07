@@ -71,15 +71,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun likeById(id: Long) {
-        val likedByMe = _data.value?.posts?.first { it.id == id }?.likedByMe
         thread {
-            when (likedByMe) {
-                false -> repository.likeById(id)
-                true -> repository.dislikeById(id)
-                else -> return@thread
-            }
-            loadPosts()
+            repository.likeById(id)
         }
+        loadPosts()
+    }
+
+    fun dislikeById(id: Long) {
+        thread {
+            repository.dislikeById(id)
+        }
+        loadPosts()
     }
 
     fun removeById(id: Long) {
