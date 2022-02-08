@@ -1,5 +1,6 @@
 package ru.netology.nmedia.repository
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaType
@@ -11,7 +12,7 @@ import java.util.concurrent.TimeUnit
 
 
 class
-PostRepositoryImpl: PostRepository {
+PostRepositoryImpl : PostRepository {
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
         .build()
@@ -31,13 +32,33 @@ PostRepositoryImpl: PostRepository {
         return client.newCall(request)
             .execute()
             .let { it.body?.string() ?: throw RuntimeException("body is null") }
-            .let {
-                gson.fromJson(it, typeToken.type)
-            }
+            .let { gson.fromJson(it, typeToken.type) }
     }
 
-    override fun likeById(id: Long) {
-        // TODO: do this in homework
+    override fun likeById(id: Long): Post {
+        val likesUrl = "${BASE_URL}/api/slow/posts/${id}/likes"
+        val request: Request = Request.Builder()
+            .post("".toRequestBody())
+            .url(likesUrl)
+            .build()
+
+        return client.newCall(request)
+            .execute()
+            .let { it.body?.string() ?: throw RuntimeException("body is null") }
+            .let { gson.fromJson(it, Post::class.java) }
+    }
+
+    override fun dislikeById(id: Long): Post {
+        val likesUrl = "${BASE_URL}/api/slow/posts/${id}/likes"
+        val request: Request = Request.Builder()
+            .delete()
+            .url(likesUrl)
+            .build()
+
+        return client.newCall(request)
+            .execute()
+            .let { it.body?.string() ?: throw RuntimeException("body is null") }
+            .let { gson.fromJson(it, Post::class.java) }
     }
 
     override fun save(post: Post) {

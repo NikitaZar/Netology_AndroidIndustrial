@@ -2,12 +2,9 @@ package ru.netology.nmedia.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import android.view.*
+import androidx.core.view.*
+import androidx.fragment.app.*
 import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -33,7 +30,10 @@ class FeedFragment : Fragment() {
             }
 
             override fun onLike(post: Post) {
-                viewModel.likeById(post.id)
+                when (post.likedByMe) {
+                    false -> viewModel.likeById(post.id)
+                    true -> viewModel.dislikeById(post.id)
+                }
             }
 
             override fun onRemove(post: Post) {
@@ -53,12 +53,16 @@ class FeedFragment : Fragment() {
             }
         })
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner, { state ->
+        viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.emptyText.isVisible = state.empty
-        })
+
+            if (!state.loading) {
+                binding.swipeRefresh.isRefreshing = false
+            }
+        }
 
         binding.retryButton.setOnClickListener {
             viewModel.loadPosts()
@@ -66,6 +70,10 @@ class FeedFragment : Fragment() {
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.loadPosts()
         }
 
         return binding.root
