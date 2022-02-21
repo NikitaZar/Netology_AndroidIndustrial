@@ -7,7 +7,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netology.nmedia.dto.Post
 import java.io.IOException
-import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 
@@ -24,7 +23,7 @@ class PostRepositoryImpl : PostRepository {
         private val JSON_TYPE = "application/json".toMediaType()
     }
 
-    override fun likeById(id: Long, callback: PostRepository.PostCallback) {
+    override fun likeById(id: Long, callback: PostRepository.PostCallback<Post>) {
         val likesUrl = "${BASE_URL}/api/slow/posts/${id}/likes"
         val request: Request = Request.Builder()
             .post("".toRequestBody())
@@ -50,7 +49,7 @@ class PostRepositoryImpl : PostRepository {
             )
     }
 
-    override fun dislikeById(id: Long, callback: PostRepository.PostCallback) {
+    override fun dislikeById(id: Long, callback: PostRepository.PostCallback<Post>) {
         val likesUrl = "${BASE_URL}/api/slow/posts/${id}/likes"
         val request: Request = Request.Builder()
             .delete()
@@ -76,7 +75,7 @@ class PostRepositoryImpl : PostRepository {
             )
     }
 
-    override fun save(post: Post, callback: PostRepository.UnitCallback) {
+    override fun save(post: Post, callback: PostRepository.PostCallback<Unit>) {
         val request: Request = Request.Builder()
             .post(gson.toJson(post).toRequestBody(JSON_TYPE))
             .url("${BASE_URL}/api/slow/posts")
@@ -90,13 +89,13 @@ class PostRepositoryImpl : PostRepository {
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        callback.onSuccess()
+                        callback.onSuccess(Unit)
                     }
                 }
             )
     }
 
-    override fun removeById(id: Long, callback: PostRepository.UnitCallback) {
+    override fun removeById(id: Long, callback: PostRepository.PostCallback<Unit>) {
         val request: Request = Request.Builder()
             .delete()
             .url("${BASE_URL}/api/slow/posts/$id")
@@ -115,7 +114,7 @@ class PostRepositoryImpl : PostRepository {
             )
     }
 
-    override fun getAll(callback: PostRepository.GetAllCallback) {
+    override fun getAll(callback: PostRepository.PostCallback<List<Post>>) {
         val request = Request.Builder()
             .url("${BASE_URL}/api/slow/posts")
             .build()

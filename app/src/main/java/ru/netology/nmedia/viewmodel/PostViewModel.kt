@@ -35,9 +35,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _data.value = FeedModel(loading = true)
 
         repository.getAll(
-            object : PostRepository.GetAllCallback {
-                override fun onSuccess(posts: List<Post>) {
-                    _data.postValue((FeedModel(posts = posts)))
+            object : PostRepository.PostCallback<List<Post>> {
+                override fun onSuccess(type: List<Post>) {
+                    _data.postValue((FeedModel(posts = type)))
                 }
 
                 override fun onError(e: Exception) {
@@ -50,9 +50,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun save() {
         edited.value?.let { post ->
             repository.save(post,
-                object : PostRepository.UnitCallback {
-                    override fun onSuccess() {
-                        _postCreated.postValue(Unit)
+                object : PostRepository.PostCallback<Unit> {
+                    override fun onSuccess(type: Unit) {
+                        _postCreated.postValue(type)
                     }
 
                     override fun onError(e: Exception) {
@@ -78,9 +78,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun likeById(id: Long) {
         repository.likeById(id,
-            object : PostRepository.PostCallback {
-                override fun onSuccess(post: Post) {
-                    postToFeedModel(post, id)
+            object : PostRepository.PostCallback<Post> {
+                override fun onSuccess(type: Post) {
+                    postToFeedModel(type, id)
                 }
 
                 override fun onError(e: Exception) {
@@ -92,9 +92,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dislikeById(id: Long) {
         repository.dislikeById(id,
-            object : PostRepository.PostCallback {
-                override fun onSuccess(post: Post) {
-                    postToFeedModel(post, id)
+            object : PostRepository.PostCallback<Post> {
+                override fun onSuccess(type: Post) {
+                    postToFeedModel(type, id)
                 }
 
                 override fun onError(e: Exception) {
@@ -114,8 +114,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         repository.removeById(id,
-            object : PostRepository.UnitCallback {
-                override fun onSuccess() {}
+            object : PostRepository.PostCallback<Unit> {
+                override fun onSuccess(type: Unit) {}
 
                 override fun onError(e: Exception) {
                     _data.postValue(_data.value?.copy(posts = old))
