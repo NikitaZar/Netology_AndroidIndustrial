@@ -57,7 +57,6 @@ class FeedFragment : Fragment() {
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
             binding.progress.isVisible = state.loading
-            binding.errorGroup.isVisible = false//state.error
             binding.emptyText.isVisible = state.empty
 
             if (!state.loading) {
@@ -71,10 +70,6 @@ class FeedFragment : Fragment() {
                     }
                     .show()
             }
-        }
-
-        binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
         }
 
         binding.fab.setOnClickListener {

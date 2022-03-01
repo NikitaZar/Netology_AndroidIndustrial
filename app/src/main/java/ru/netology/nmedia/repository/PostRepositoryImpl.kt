@@ -1,6 +1,5 @@
 package ru.netology.nmedia.repository
 
-import android.util.Log
 import ru.netology.nmedia.api.PostsApi
 import ru.netology.nmedia.dto.Post
 import retrofit2.Callback
@@ -90,7 +89,6 @@ class PostRepositoryImpl : PostRepository {
                 override fun onResponse(call: Call<List<Post>>, response: Response<List<Post>>) {
                     if (!response.isSuccessful) {
                         callback.onError(RuntimeException(response.message()))
-                        Log.i("getAll",response.code().toString())
                         return
                     }
                     callback.onSuccess(response.body() ?: throw RuntimeException(BODY_IS_NULL_TEXT))
