@@ -3,6 +3,7 @@ package ru.netology.nmedia.viewmodel
 import android.app.Application
 import androidx.lifecycle.*
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
@@ -27,8 +28,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val postCreated: LiveData<Unit>
         get() = _postCreated
 
-    var lastAction: LastAction? = LastAction(ActionType.NULL, 0)
-
     init {
         loadPosts()
     }
@@ -39,13 +38,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         repository.getAll(
             object : PostRepository.PostCallback<List<Post>> {
                 override fun onSuccess(type: List<Post>) {
-                    lastAction = null
                     _data.postValue((FeedModel(posts = type)))
                 }
 
                 override fun onError(e: Exception) {
-                    lastAction = LastAction(ActionType.LOAD, 0)
-                    _data.postValue(FeedModel(error = true))
+                    _data.postValue(FeedModel(error = true, actionType = ActionType.LOAD))
                 }
             }
         )
@@ -56,13 +53,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             repository.save(post,
                 object : PostRepository.PostCallback<Unit> {
                     override fun onSuccess(type: Unit) {
-                        lastAction = null
                         _postCreated.postValue(type)
                     }
 
                     override fun onError(e: Exception) {
-                        lastAction = LastAction(ActionType.SAVE, 0)
-                        _data.postValue(FeedModel(error = true))
+                        _data.postValue(FeedModel(error = true, actionType = ActionType.SAVE))
                     }
                 }
             )
@@ -86,29 +81,36 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         repository.likeById(id,
             object : PostRepository.PostCallback<Post> {
                 override fun onSuccess(type: Post) {
-                    lastAction = null
                     postToFeedModel(type, id)
                 }
 
                 override fun onError(e: Exception) {
-                    lastAction = LastAction(ActionType.LIKE_BY_ID, id)
-                    _data.postValue(FeedModel(error = true))
+                    _data.postValue(
+                        FeedModel(
+                            error = true,
+                            actionType = ActionType.LIKE,
+                            actionId = id
+                        )
+                    )
                 }
             })
-
     }
 
     fun dislikeById(id: Long) {
         repository.dislikeById(id,
             object : PostRepository.PostCallback<Post> {
                 override fun onSuccess(type: Post) {
-                    lastAction = null
                     postToFeedModel(type, id)
                 }
 
                 override fun onError(e: Exception) {
-                    lastAction = LastAction(ActionType.DISLIKE, id)
-                    _data.postValue(FeedModel(error = true))
+                    _data.postValue(
+                        FeedModel(
+                            error = true,
+                            actionType = ActionType.DISLIKE,
+                            actionId = id
+                        )
+                    )
                 }
             }
         )
@@ -126,12 +128,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         repository.removeById(id,
             object : PostRepository.PostCallback<Unit> {
                 override fun onSuccess(type: Unit) {
-                    lastAction = null
                 }
 
                 override fun onError(e: Exception) {
-                    lastAction = LastAction(ActionType.REMOVE, id)
-                    _data.postValue(_data.value?.copy(posts = old))
+                    _data.postValue(
+                        _data.value?.copy(
+                            posts = old,
+                            actionType = ActionType.REMOVE,
+                            actionId = id
+                        )
+                    )
                 }
             }
         )
@@ -144,15 +150,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun retryActon() {
-        lastAction?.let { action ->
-            when (action.type) {
-                ActionType.LOAD -> loadPosts()
-                ActionType.DISLIKE -> dislikeById(action.id)
-                ActionType.LIKE_BY_ID -> likeById(action.id)
-                ActionType.REMOVE -> removeById(action.id)
-                ActionType.SAVE -> save()
-            }
+    fun retryActon(actionType: ActionType, id: Long) {
+        when (actionType) {
+            ActionType.LOAD -> loadPosts()
+            ActionType.DISLIKE -> dislikeById(id)
+            ActionType.LIKE -> likeById(id)
+            ActionType.REMOVE -> removeById(id)
+            ActionType.SAVE -> save()
+            else -> return
         }
     }
 }
