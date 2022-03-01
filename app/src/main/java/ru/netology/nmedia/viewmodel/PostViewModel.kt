@@ -3,6 +3,7 @@ package ru.netology.nmedia.viewmodel
 import android.app.Application
 import androidx.lifecycle.*
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
@@ -41,7 +42,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 override fun onError(e: Exception) {
-                    _data.postValue(FeedModel(error = true))
+                    _data.postValue(FeedModel(error = true, actionType = ActionType.LOAD))
                 }
             }
         )
@@ -56,7 +57,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                     override fun onError(e: Exception) {
-                        _data.postValue(FeedModel(error = true))
+                        _data.postValue(FeedModel(error = true, actionType = ActionType.SAVE))
                     }
                 }
             )
@@ -84,10 +85,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 override fun onError(e: Exception) {
-                    _data.postValue(FeedModel(error = true))
+                    _data.postValue(
+                        FeedModel(
+                            error = true,
+                            actionType = ActionType.LIKE,
+                            actionId = id
+                        )
+                    )
                 }
             })
-
     }
 
     fun dislikeById(id: Long) {
@@ -98,7 +104,13 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 override fun onError(e: Exception) {
-                    _data.postValue(FeedModel(error = true))
+                    _data.postValue(
+                        FeedModel(
+                            error = true,
+                            actionType = ActionType.DISLIKE,
+                            actionId = id
+                        )
+                    )
                 }
             }
         )
@@ -115,10 +127,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
         repository.removeById(id,
             object : PostRepository.PostCallback<Unit> {
-                override fun onSuccess(type: Unit) {}
+                override fun onSuccess(type: Unit) {
+                }
 
                 override fun onError(e: Exception) {
-                    _data.postValue(_data.value?.copy(posts = old))
+                    _data.postValue(
+                        _data.value?.copy(
+                            posts = old,
+                            actionType = ActionType.REMOVE,
+                            actionId = id
+                        )
+                    )
                 }
             }
         )
@@ -128,6 +147,18 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         val posts = _data.value?.posts.orEmpty().map { if (it.id == id) post else it }
         FeedModel(posts = posts)
         _data.postValue(FeedModel(posts = posts))
+    }
+
+
+    fun retryActon(actionType: ActionType, id: Long) {
+        when (actionType) {
+            ActionType.LOAD -> loadPosts()
+            ActionType.DISLIKE -> dislikeById(id)
+            ActionType.LIKE -> likeById(id)
+            ActionType.REMOVE -> removeById(id)
+            ActionType.SAVE -> save()
+            else -> return
+        }
     }
 }
 
