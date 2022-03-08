@@ -2,6 +2,7 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModel
@@ -12,6 +13,7 @@ private val empty = Post(
     id = 0,
     content = "",
     author = "",
+    authorAvatar = "",
     likedByMe = false,
     likes = 0,
     published = ""
@@ -148,7 +150,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         FeedModel(posts = posts)
         _data.postValue(FeedModel(posts = posts))
     }
-
 
     fun retryActon(actionType: ActionType, id: Long) {
         when (actionType) {

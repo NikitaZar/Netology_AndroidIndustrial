@@ -1,5 +1,6 @@
 package ru.netology.nmedia.repository
 
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.api.PostsApi
 import ru.netology.nmedia.dto.Post
 import retrofit2.Callback
@@ -100,5 +101,4 @@ class PostRepositoryImpl : PostRepository {
             }
         )
     }
-
 }
