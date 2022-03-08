@@ -9,8 +9,6 @@ import retrofit2.http.*
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.dto.Post
 
-private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
-
 private val logging = HttpLoggingInterceptor().apply {
     if (BuildConfig.DEBUG) {
         level = HttpLoggingInterceptor.Level.BODY
@@ -23,7 +21,7 @@ private val okhttp = OkHttpClient.Builder()
 
 private val retrofit = Retrofit.Builder()
     .addConverterFactory(GsonConverterFactory.create())
-    .baseUrl(BASE_URL)
+    .baseUrl(BuildConfig.BASE_API)
     .client(okhttp)
     .build()
 
