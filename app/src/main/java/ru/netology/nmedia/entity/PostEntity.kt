@@ -9,7 +9,7 @@ data class PostEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     val author: String,
-    val authorAvatar:String,
+    val authorAvatar: String,
     val content: String,
     val published: String,
     val likedByMe: Boolean,
@@ -23,3 +23,6 @@ data class PostEntity(
     }
 }
 
+fun List<PostEntity>.toDto() = map { it.toDto() }
+
+fun List<Post>.toEntity() = map { PostEntity.fromDto(it) }

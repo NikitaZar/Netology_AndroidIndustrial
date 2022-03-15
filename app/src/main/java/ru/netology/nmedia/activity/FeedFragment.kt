@@ -53,21 +53,26 @@ class FeedFragment : Fragment() {
                 startActivity(shareIntent)
             }
         })
+
         binding.list.adapter = adapter
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
-            binding.progress.isVisible = state.loading
+
             binding.emptyText.isVisible = state.empty
 
-            if (!state.loading) {
-                binding.swipeRefresh.isRefreshing = false
-            }
+            viewModel.dataState.observe(viewLifecycleOwner) { state ->
+                binding.progress.isVisible = state.loading
 
-            if (state.error) {
-                Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.retry_loading) {
-                        viewModel.retryActon(state.actionType, state.actionId)
-                    }.show()
+                if (!state.loading) {
+                    binding.swipeRefresh.isRefreshing = false
+                }
+
+                if (state.error) {
+                    Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.retry_loading) {
+                            viewModel.retryActon(state.actionType, state.actionId)
+                        }.show()
+                }
             }
         }
 

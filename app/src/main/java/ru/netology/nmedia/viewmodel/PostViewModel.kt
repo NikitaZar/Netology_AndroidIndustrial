@@ -2,10 +2,11 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.*
-import com.bumptech.glide.Glide
+import kotlinx.coroutines.launch
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModel
+import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
 
@@ -21,10 +22,12 @@ private val empty = Post(
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: PostRepository = PostRepositoryImpl()
-    private val _data = MutableLiveData(FeedModel())
-    val data: LiveData<FeedModel>
-        get() = _data
+    private val repository: PostRepository = PostRepositoryImpl(AppDb.getInstance(application).postDao())
+
+    private val _dataState = MutableLiveData(FeedModelState())
+    val data: LiveData<FeedModel> = repository.data.map { FeedModel(it) }
+    val dataState: LiveData<FeedModelState>
+        get() = _dataState
     val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
@@ -34,36 +37,22 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         loadPosts()
     }
 
-    fun loadPosts() {
-        _data.value = FeedModel(loading = true)
-
-        repository.getAll(
-            object : PostRepository.PostCallback<List<Post>> {
-                override fun onSuccess(type: List<Post>) {
-                    _data.postValue((FeedModel(posts = type)))
-                }
-
-                override fun onError(e: Exception) {
-                    _data.postValue(FeedModel(error = true, actionType = ActionType.LOAD))
-                }
-            }
-        )
+    fun loadPosts() = viewModelScope.launch {
+        try {
+            _dataState.value = FeedModelState(loading = true)
+            repository.getAll()
+            _dataState.value = FeedModelState()
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true)
+        }
     }
 
-    fun save() {
-        edited.value?.let { post ->
-            repository.save(post,
-                object : PostRepository.PostCallback<Unit> {
-                    override fun onSuccess(type: Unit) {
-                        _postCreated.postValue(type)
-                    }
-
-                    override fun onError(e: Exception) {
-                        _data.postValue(FeedModel(error = true, actionType = ActionType.SAVE))
-                    }
-                }
-            )
+    fun save() = viewModelScope.launch {
+        try {
+            edited.value?.let { post -> repository.save(post) }
             edited.value = empty
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true)
         }
     }
 
@@ -79,88 +68,67 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         edited.value = edited.value?.copy(content = text)
     }
 
-    fun likeById(id: Long) {
-        repository.likeById(id,
-            object : PostRepository.PostCallback<Post> {
-                override fun onSuccess(type: Post) {
-                    postToFeedModel(type, id)
-                }
-
-                override fun onError(e: Exception) {
-                    _data.postValue(
-                        FeedModel(
-                            error = true,
-                            actionType = ActionType.LIKE,
-                            actionId = id
-                        )
-                    )
-                }
-            })
-    }
-
-    fun dislikeById(id: Long) {
-        repository.dislikeById(id,
-            object : PostRepository.PostCallback<Post> {
-                override fun onSuccess(type: Post) {
-                    postToFeedModel(type, id)
-                }
-
-                override fun onError(e: Exception) {
-                    _data.postValue(
-                        FeedModel(
-                            error = true,
-                            actionType = ActionType.DISLIKE,
-                            actionId = id
-                        )
-                    )
-                }
-            }
-        )
-    }
-
-    fun removeById(id: Long) {
-        // Оптимистичная модель
-        val old = _data.value?.posts.orEmpty()
-        _data.postValue(
-            _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                .filter { it.id != id }
-            )
-        )
-
-        repository.removeById(id,
-            object : PostRepository.PostCallback<Unit> {
-                override fun onSuccess(type: Unit) {
-                }
-
-                override fun onError(e: Exception) {
-                    _data.postValue(
-                        _data.value?.copy(
-                            posts = old,
-                            actionType = ActionType.REMOVE,
-                            actionId = id
-                        )
-                    )
-                }
-            }
-        )
-    }
-
-    private fun postToFeedModel(post: Post, id: Long) {
-        val posts = _data.value?.posts.orEmpty().map { if (it.id == id) post else it }
-        FeedModel(posts = posts)
-        _data.postValue(FeedModel(posts = posts))
-    }
-
-    fun retryActon(actionType: ActionType, id: Long) {
-        when (actionType) {
-            ActionType.LOAD -> loadPosts()
-            ActionType.DISLIKE -> dislikeById(id)
-            ActionType.LIKE -> likeById(id)
-            ActionType.REMOVE -> removeById(id)
-            ActionType.SAVE -> save()
-            else -> return
+    fun likeById(id: Long) = viewModelScope.launch {
+        try {
+            repository.likeById(id)
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true)
         }
     }
-}
+
+    fun dislikeById(id: Long) = viewModelScope.launch {
+        try {
+            repository.dislikeById(id)
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true)
+        }
+    }
+
+    fun removeById(id: Long) = viewModelScope.launch {
+
+    }
+        // Оптимистичная модель
+        //TODO
+
+
+//        val old = _data.value?.posts.orEmpty()
+//        _data.postValue(
+//            _data.value?.copy(posts = _data.value?.posts.orEmpty()
+//                .filter { it.id != id }
+//            )
+//        )
+
+//        repository.removeById(id,
+//            object : PostRepository.PostCallback<Unit> {
+//                override fun onSuccess(type: Unit) {
+//                }
+//
+//                override fun onError(e: Exception) {
+//                    _data.postValue(
+//                        _data.value?.copy(
+//                            posts = old,
+//                            actionType = ActionType.REMOVE,
+//                            actionId = id
+//                        )
+//                    )
+//                }
+//            }
+//        )
+    }
+
+
+//TODO
+
+//    fun retryActon(actionType: ActionType, id: Long) {
+//        when (actionType) {
+//            ActionType.LOAD -> loadPosts()
+//            ActionType.DISLIKE -> dislikeById(id)
+//            ActionType.LIKE -> likeById(id)
+//            ActionType.REMOVE -> removeById(id)
+//            ActionType.SAVE -> save()
+//            else -> return
+//        }
+//    }
+//}
 
 
