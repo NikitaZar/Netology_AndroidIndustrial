@@ -52,25 +52,29 @@ class FeedFragment : Fragment() {
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
             }
+
+            override fun onResend(post: Post) {
+                viewModel.save(post)
+            }
         })
 
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
+        viewModel.data.observe(viewLifecycleOwner) { data ->
+            adapter.submitList(data.posts)
 
-            binding.emptyText.isVisible = state.empty
+            binding.emptyText.isVisible = data.empty
 
-            viewModel.dataState.observe(viewLifecycleOwner) { state ->
-                binding.progress.isVisible = state.loading
+            viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
+                binding.progress.isVisible = dataState.loading
 
-                if (!state.loading) {
+                if (!dataState.loading) {
                     binding.swipeRefresh.isRefreshing = false
                 }
 
-                if (state.error) {
+                if (dataState.error) {
                     Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
                         .setAction(R.string.retry_loading) {
-                            viewModel.retryActon(state.actionType, state.actionId)
+                            viewModel.retryActon(dataState.actionType, dataState.actionId)
                         }.show()
                 }
             }

@@ -19,8 +19,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun likeById(id: Long) {
         try {
-            //val post = TODO: Get from DB?
-            //dao.insert(PostEntity.fromDto(post))
             val response = PostsApi.retrofitService.likeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
@@ -36,8 +34,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun dislikeById(id: Long) {
         try {
-            //val post = TODO: Get from DB?
-            //dao.insert(PostEntity.fromDto(post))
             val response = PostsApi.retrofitService.dislikeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
@@ -51,13 +47,18 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         }
     }
 
-    override suspend fun save(post: Post) {
+    override suspend fun save(post: Post, isResend: Boolean) {
         try {
-            dao.insert(PostEntity.fromDto(post))
+            if (!isResend) {
+                dao.insert(PostEntity.fromDto(post.copy(isNotSent = true)))
+            }
             val response = PostsApi.retrofitService.save(post)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
+            if (isResend){
+                dao.removeById(post.id)
+            }
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {

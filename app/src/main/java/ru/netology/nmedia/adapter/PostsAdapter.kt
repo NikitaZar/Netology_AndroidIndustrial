@@ -15,10 +15,11 @@ import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 
 interface OnInteractionListener {
-    fun onLike(post: Post) {}
-    fun onEdit(post: Post) {}
-    fun onRemove(post: Post) {}
-    fun onShare(post: Post) {}
+    fun onLike(post: Post)
+    fun onEdit(post: Post)
+    fun onRemove(post: Post)
+    fun onShare(post: Post)
+    fun onResend(post: Post)
 }
 
 class PostsAdapter(
@@ -48,6 +49,7 @@ class PostViewHolder(
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
+            isSent.isCheckable = !post.isNotSent
 
             val url = "${BuildConfig.BASE_URL}avatars/${post.authorAvatar}"
             Glide.with(context)
@@ -69,6 +71,10 @@ class PostViewHolder(
                             }
                             R.id.edit -> {
                                 onInteractionListener.onEdit(post)
+                                true
+                            }
+                            R.id.resend -> {
+                                onInteractionListener.onResend(post)
                                 true
                             }
 

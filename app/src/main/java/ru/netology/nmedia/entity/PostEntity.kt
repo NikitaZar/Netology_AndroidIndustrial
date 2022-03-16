@@ -14,12 +14,22 @@ data class PostEntity(
     val published: String,
     val likedByMe: Boolean,
     val likes: Int = 0,
+    val isNotSent: Boolean
 ) {
-    fun toDto() = Post(id, author, content, published, authorAvatar, likedByMe, likes)
+    fun toDto() = Post(id, author, content, published, authorAvatar, likedByMe, likes, isNotSent)
 
     companion object {
         fun fromDto(dto: Post) =
-            PostEntity(dto.id, dto.author, dto.content, dto.published, dto.authorAvatar, dto.likedByMe, dto.likes)
+            PostEntity(
+                dto.id,
+                dto.author,
+                dto.content,
+                dto.published,
+                dto.authorAvatar,
+                dto.likedByMe,
+                dto.likes,
+                dto.isNotSent
+            )
     }
 }
 

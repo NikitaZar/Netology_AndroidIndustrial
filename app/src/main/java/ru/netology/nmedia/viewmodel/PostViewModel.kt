@@ -51,8 +51,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save() = viewModelScope.launch {
         try {
-            edited.value?.let { post -> repository.save(post) }
+            edited.value?.let { post -> repository.save(post, false) }
             edited.value = empty
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.SAVE)
+        }
+    }
+
+    fun save(post: Post) = viewModelScope.launch {
+        try {
+            repository.save(post, true)
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = true, actionType = ActionType.SAVE)
         }
@@ -72,6 +80,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun likeById(id: Long) = viewModelScope.launch {
         try {
+            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
+            if (isNotSent) {
+                return@launch
+            }
             repository.likeById(id)
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = true, actionType = ActionType.LIKE)
@@ -80,6 +92,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun dislikeById(id: Long) = viewModelScope.launch {
         try {
+            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
+            if (isNotSent) {
+                return@launch
+            }
             repository.dislikeById(id)
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = true, actionType = ActionType.DISLIKE)
