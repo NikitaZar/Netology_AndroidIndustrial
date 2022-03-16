@@ -1,5 +1,6 @@
 package ru.netology.nmedia.repository
 
+import android.util.Log
 import androidx.lifecycle.map
 import ru.netology.nmedia.api.PostsApi
 import ru.netology.nmedia.dto.Post
@@ -47,18 +48,16 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         }
     }
 
-    override suspend fun save(post: Post, isResend: Boolean) {
+    override suspend fun save(post: Post, retry: Boolean) {
         try {
-            if (!isResend) {
+            if (!retry) {
                 dao.insert(PostEntity.fromDto(post.copy(isNotSent = true)))
             }
-            val response = PostsApi.retrofitService.save(post)
+            val response = PostsApi.retrofitService.save(post.copy(id = 0))
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
-            if (isResend){
-                dao.removeById(post.id)
-            }
+            dao.removeById(post.id)
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {

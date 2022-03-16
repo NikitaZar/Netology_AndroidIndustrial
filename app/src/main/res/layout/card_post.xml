@@ -112,18 +112,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/common_spacing"
-                android:layout_toRightOf="@id/like"
+                android:layout_toEndOf="@id/like"
                 android:contentDescription="@string/description_post_share"
                 app:icon="@drawable/ic_share_24" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/isSent"
-                style="@style/Widget.AppTheme.IconButton"
+                style="@style/Widget.AppTheme.IsSentCheckBox"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:checkable="true"
                 android:clickable="false"
                 android:layout_alignParentEnd="true"
-                android:contentDescription="@string/description_post_share"
                 app:icon="@drawable/ic_baseline_check_24" />
 
         </RelativeLayout>

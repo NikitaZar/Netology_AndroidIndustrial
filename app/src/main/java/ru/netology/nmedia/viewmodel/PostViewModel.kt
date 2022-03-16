@@ -54,7 +54,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             edited.value?.let { post -> repository.save(post, false) }
             edited.value = empty
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.SAVE)
+            _dataState.value = FeedModelState(error = false, actionType = ActionType.NULL)
         }
     }
 
@@ -62,7 +62,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         try {
             repository.save(post, true)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.SAVE)
+            _dataState.value = FeedModelState(error = false, actionType = ActionType.NULL)
         }
     }
 

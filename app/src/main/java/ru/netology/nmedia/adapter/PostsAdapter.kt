@@ -49,9 +49,10 @@ class PostViewHolder(
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
-            isSent.isCheckable = !post.isNotSent
+            isSent.isChecked = !post.isNotSent
 
             val url = "${BuildConfig.BASE_URL}avatars/${post.authorAvatar}"
+            Log.i("img", url)
             Glide.with(context)
                 .load(url)
                 .placeholder(R.drawable.ic_empty_avatar)
