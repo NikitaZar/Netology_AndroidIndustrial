@@ -19,6 +19,8 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun likeById(id: Long) {
         try {
+            //val post = TODO: Get from DB?
+            //dao.insert(PostEntity.fromDto(post))
             val response = PostsApi.retrofitService.likeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
@@ -34,10 +36,12 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun dislikeById(id: Long) {
         try {
+            //val post = TODO: Get from DB?
+            //dao.insert(PostEntity.fromDto(post))
             val response = PostsApi.retrofitService.dislikeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body)) //TODO
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
@@ -49,10 +53,11 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun save(post: Post) {
         try {
+            dao.insert(PostEntity.fromDto(post))
             val response = PostsApi.retrofitService.save(post)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body)) //TODO
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
@@ -64,9 +69,9 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun removeById(id: Long) {
         try {
+            dao.removeById(id)
             val response = PostsApi.retrofitService.removeById(id)
             checkResponse(response)
-            dao.removeById(id) //TODO
         } catch (e: IOException) {
             throw NetworkException
         } catch (e: Exception) {

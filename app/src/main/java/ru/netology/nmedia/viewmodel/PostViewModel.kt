@@ -5,6 +5,7 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.*
@@ -22,7 +23,8 @@ private val empty = Post(
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: PostRepository = PostRepositoryImpl(AppDb.getInstance(application).postDao())
+    private val repository: PostRepository =
+        PostRepositoryImpl(AppDb.getInstance(application).postDao())
 
     private val _dataState = MutableLiveData(FeedModelState())
     val data: LiveData<FeedModel> = repository.data.map { FeedModel(it) }
@@ -43,7 +45,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true)
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.LOAD)
         }
     }
 
@@ -52,7 +54,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             edited.value?.let { post -> repository.save(post) }
             edited.value = empty
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true)
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.SAVE)
         }
     }
 
@@ -72,7 +74,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         try {
             repository.likeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true)
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.LIKE)
         }
     }
 
@@ -80,55 +82,26 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         try {
             repository.dislikeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true)
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.DISLIKE)
         }
     }
 
     fun removeById(id: Long) = viewModelScope.launch {
-
-    }
-        // Оптимистичная модель
-        //TODO
-
-
-//        val old = _data.value?.posts.orEmpty()
-//        _data.postValue(
-//            _data.value?.copy(posts = _data.value?.posts.orEmpty()
-//                .filter { it.id != id }
-//            )
-//        )
-
-//        repository.removeById(id,
-//            object : PostRepository.PostCallback<Unit> {
-//                override fun onSuccess(type: Unit) {
-//                }
-//
-//                override fun onError(e: Exception) {
-//                    _data.postValue(
-//                        _data.value?.copy(
-//                            posts = old,
-//                            actionType = ActionType.REMOVE,
-//                            actionId = id
-//                        )
-//                    )
-//                }
-//            }
-//        )
+        try {
+            repository.removeById(id)
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.REMOVE)
+        }
     }
 
-
-//TODO
-
-//    fun retryActon(actionType: ActionType, id: Long) {
-//        when (actionType) {
-//            ActionType.LOAD -> loadPosts()
-//            ActionType.DISLIKE -> dislikeById(id)
-//            ActionType.LIKE -> likeById(id)
-//            ActionType.REMOVE -> removeById(id)
-//            ActionType.SAVE -> save()
-//            else -> return
-//        }
-//    }
-//}
-
-
+    fun retryActon(actionType: ActionType, id: Long) {
+        when (actionType) {
+            ActionType.LOAD -> loadPosts()
+            ActionType.DISLIKE -> dislikeById(id)
+            ActionType.LIKE -> likeById(id)
+            ActionType.REMOVE -> removeById(id)
+            ActionType.SAVE -> save()
+            else -> return
+        }
+    }
+}
