@@ -60,7 +60,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save(post: Post) = viewModelScope.launch {
         try {
-            repository.save(post, true)
+            if (post.isNotSent) {
+                repository.save(post, true)
+            }
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = false, actionType = ActionType.NULL)
         }
