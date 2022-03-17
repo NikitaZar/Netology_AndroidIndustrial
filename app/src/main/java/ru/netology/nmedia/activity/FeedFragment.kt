@@ -14,13 +14,6 @@ import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
 
-/*TODO
-* 1. Scroll up after post created
-* 2. Navigate up after post created despite server responded
-* 3. hide fab
-* 4. edit method
-* */
-
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
@@ -67,7 +60,12 @@ class FeedFragment : Fragment() {
 
         binding.list.adapter = adapter
         viewModel.data.observe(viewLifecycleOwner) { data ->
-            adapter.submitList(data.posts)
+            val isNewPost = adapter.itemCount < data.posts.size
+            adapter.submitList(data.posts) {
+                if (isNewPost) {
+                    binding.list.smoothScrollToPosition(0)
+                }
+            }
 
             binding.emptyText.isVisible = data.empty
 
