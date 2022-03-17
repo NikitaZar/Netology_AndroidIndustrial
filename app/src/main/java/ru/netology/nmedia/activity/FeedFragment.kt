@@ -14,6 +14,13 @@ import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
 
+/*TODO
+* 1. Scroll up after post created
+* 2. Navigate up after post created despite server responded
+* 3. hide fab
+* 4. edit method
+* */
+
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
@@ -52,22 +59,31 @@ class FeedFragment : Fragment() {
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
             }
-        })
-        binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.progress.isVisible = state.loading
-            binding.emptyText.isVisible = state.empty
 
-            if (!state.loading) {
-                binding.swipeRefresh.isRefreshing = false
+            override fun onResend(post: Post) {
+                viewModel.retrySave(post)
             }
+        })
 
-            if (state.error) {
-                Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.retry_loading) {
-                        viewModel.retryActon(state.actionType, state.actionId)
-                    }.show()
+        binding.list.adapter = adapter
+        viewModel.data.observe(viewLifecycleOwner) { data ->
+            adapter.submitList(data.posts)
+
+            binding.emptyText.isVisible = data.empty
+
+            viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
+                binding.progress.isVisible = dataState.loading
+
+                if (!dataState.loading) {
+                    binding.swipeRefresh.isRefreshing = false
+                }
+
+                if (dataState.error) {
+                    Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
+                        .setAction(R.string.retry_loading) {
+                            viewModel.retryActon(dataState.actionType, dataState.actionId)
+                        }.show()
+                }
             }
         }
 
