@@ -91,7 +91,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
             repository.likeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.LIKE)
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.LIKE, actionId = id)
         }
     }
 
@@ -103,7 +103,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
             repository.dislikeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.DISLIKE)
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.DISLIKE, actionId = id)
         }
     }
 
@@ -111,7 +111,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         try {
             repository.removeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.REMOVE)
+            _dataState.value = FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
         }
     }
 
