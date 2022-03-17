@@ -52,13 +52,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun save() = viewModelScope.launch {
         try {
             edited.value?.let { post -> repository.save(post, false) }
-            edited.value = empty
+            _postCreated.postValue(Unit)
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = false, actionType = ActionType.NULL)
+        }finally {
+            edited.value = empty
         }
     }
 
-    fun save(post: Post) = viewModelScope.launch {
+    fun retrySave(post: Post) = viewModelScope.launch {
         try {
             if (post.isNotSent) {
                 repository.save(post, true)

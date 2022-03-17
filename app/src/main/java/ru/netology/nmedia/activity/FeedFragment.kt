@@ -54,7 +54,7 @@ class FeedFragment : Fragment() {
             }
 
             override fun onResend(post: Post) {
-                viewModel.save(post)
+                viewModel.retrySave(post)
             }
         })
 
