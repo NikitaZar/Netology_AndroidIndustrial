@@ -1,6 +1,7 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
@@ -55,7 +56,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             _postCreated.postValue(Unit)
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = false, actionType = ActionType.NULL)
-        }finally {
+        } finally {
             edited.value = empty
         }
     }

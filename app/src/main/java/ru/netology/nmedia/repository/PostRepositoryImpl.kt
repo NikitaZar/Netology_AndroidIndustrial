@@ -57,7 +57,11 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
+
+            val daoo = dao.getAll().value?.first {it.isNotSent}?.id
+            Log.i("daoo", daoo.toString()) //TODO
             dao.removeById(post.id)
+
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
