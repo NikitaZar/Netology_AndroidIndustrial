@@ -50,18 +50,20 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun save(post: Post, retry: Boolean) {
         try {
+            var newId = 0L
             if (!retry) {
-                dao.insert(PostEntity.fromDto(post.copy(isNotSent = true)))
+                newId = dao.insert(PostEntity.fromDto(post.copy(isNotSent = true)))
             }
             val response = PostsApi.retrofitService.save(post.copy(id = 0))
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
 
-            val daoo = dao.getAll().value?.first {it.isNotSent}?.id
-            Log.i("daoo", daoo.toString()) //TODO
-            dao.removeById(post.id)
-
+            if (!retry) {
+                dao.removeById(newId)
+            }else {
+                dao.removeById(post.id)
+            }
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
