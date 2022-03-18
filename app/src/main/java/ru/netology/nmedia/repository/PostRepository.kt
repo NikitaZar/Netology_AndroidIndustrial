@@ -12,4 +12,5 @@ interface PostRepository {
     suspend fun save(post: Post, retry: Boolean)
     suspend fun removeById(id: Long)
     suspend fun getAll()
+    suspend fun asVisibleAll()
 }

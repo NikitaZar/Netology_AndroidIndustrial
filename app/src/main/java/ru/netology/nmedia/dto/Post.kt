@@ -18,6 +18,8 @@ data class Post(
     @SerializedName("likes")
     val likes: Int = 0,
     @Transient
-    val isNotSent: Boolean = false
+    val isNotSent: Boolean = false,
+    @Transient
+    var isVisible: Boolean = false
 )
 

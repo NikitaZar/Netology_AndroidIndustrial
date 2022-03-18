@@ -2,6 +2,7 @@ package ru.netology.nmedia.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.core.view.*
 import androidx.fragment.app.*
@@ -93,9 +94,16 @@ class FeedFragment : Fragment() {
             viewModel.loadPosts()
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-            // TODO: just log it, interaction must be in homework
-            println(state)
+        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
+            if (count > 0) {
+                binding.fabNewer.show()
+            }
+        }
+
+        binding.fabNewer.setOnClickListener {
+            viewModel.asVisibleAll()
+            binding.list.smoothScrollToPosition(0)
+            binding.fabNewer.hide()
         }
 
         return binding.root
