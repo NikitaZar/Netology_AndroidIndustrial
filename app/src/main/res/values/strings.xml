@@ -24,4 +24,5 @@
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="no_network_exception" translatable="false">No network exception</string>
     <string name="unknown_exception" translatable="false">Unknown exception</string>
+    <string name="refresh">Refresh</string>
 </resources>

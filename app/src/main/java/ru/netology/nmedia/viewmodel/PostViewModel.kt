@@ -3,6 +3,8 @@ package ru.netology.nmedia.viewmodel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
@@ -91,7 +93,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
             repository.likeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.LIKE, actionId = id)
+            _dataState.value =
+                FeedModelState(error = true, actionType = ActionType.LIKE, actionId = id)
         }
     }
 
@@ -103,7 +106,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
             repository.dislikeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.DISLIKE, actionId = id)
+            _dataState.value =
+                FeedModelState(error = true, actionType = ActionType.DISLIKE, actionId = id)
         }
     }
 
@@ -111,7 +115,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         try {
             repository.removeById(id)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
+            _dataState.value =
+                FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
         }
     }
 
@@ -125,4 +130,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             else -> return
         }
     }
+
+    val newerCount: LiveData<Int> = data.switchMap {
+        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
+            .catch { e -> e.printStackTrace() }
+            .asLiveData(Dispatchers.Default)
+    }
+
+    fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
 }
