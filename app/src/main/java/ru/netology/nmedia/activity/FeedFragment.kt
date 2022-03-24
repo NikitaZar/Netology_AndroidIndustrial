@@ -9,6 +9,7 @@ import androidx.fragment.app.*
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.FullscreenAttachmentFragment.Companion.url
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -56,6 +57,14 @@ class FeedFragment : Fragment() {
 
             override fun onResend(post: Post) {
                 viewModel.retrySave(post)
+            }
+
+            override fun onFullscreenAttachment(attachmentUrl: String) {
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_fullscreenAttachmentFragment,
+                    Bundle().apply { this.url = attachmentUrl }
+                )
+
             }
         })
 

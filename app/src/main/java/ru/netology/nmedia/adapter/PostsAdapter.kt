@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.view.isVisible
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -22,6 +23,7 @@ interface OnInteractionListener {
     fun onRemove(post: Post)
     fun onShare(post: Post)
     fun onResend(post: Post)
+    fun onFullscreenAttachment(attachmentUrl: String)
 }
 
 class PostsAdapter(
@@ -61,8 +63,11 @@ class PostViewHolder(
                 val attachmentUrl = "${BuildConfig.BASE_URL}media/${postAttachment.url}"
                 attachment.load(attachmentUrl)
                 attachment.isVisible = true
-            }
 
+                attachment.setOnClickListener {
+                    onInteractionListener.onFullscreenAttachment(attachmentUrl)
+                }
+            }
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
