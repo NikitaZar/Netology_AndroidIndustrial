@@ -7,10 +7,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
+import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
 
@@ -33,10 +35,16 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val data: LiveData<FeedModel> = repository.data.map { FeedModel(it) }
     val dataState: LiveData<FeedModelState>
         get() = _dataState
+
     val edited = MutableLiveData(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+
+    private val noPhoto = PhotoModel()
+    private val _photo = MutableLiveData(noPhoto)
+    val photo: LiveData<PhotoModel>
+        get() = _photo
 
     init {
         loadPosts()
@@ -54,12 +62,22 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save() = viewModelScope.launch {
         try {
-            edited.value?.let { post -> repository.save(post, false) }
+
+            edited.value?.let { post ->
+                when (_photo.value) {
+                    noPhoto -> repository.save(post, false)
+                    else -> _photo.value?.file?.let { file ->
+                        repository.saveWithAttachment(post, MediaUpload(file), false)
+                    }
+                }
+            }
             _postCreated.postValue(Unit)
+            _dataState.value = FeedModelState()
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = false, actionType = ActionType.NULL)
         } finally {
             edited.value = empty
+            _photo.value = noPhoto
         }
     }
 
@@ -138,4 +156,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
+
+    fun refreshPosts() = viewModelScope.launch {
+        try {
+            _dataState.value = FeedModelState(refreshing = true)
+            repository.getAll()
+            _dataState.value = FeedModelState()
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true)
+        }
+    }
+
 }

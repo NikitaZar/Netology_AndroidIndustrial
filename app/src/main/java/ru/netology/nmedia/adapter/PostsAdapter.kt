@@ -13,6 +13,7 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.view.loadCircleCrop
 
 interface OnInteractionListener {
     fun onLike(post: Post)
@@ -52,14 +53,7 @@ class PostViewHolder(
             isSent.isChecked = !post.isNotSent
 
             val url = "${BuildConfig.BASE_URL}avatars/${post.authorAvatar}"
-            Log.i("img", url)
-            Glide.with(context)
-                .load(url)
-                .placeholder(R.drawable.ic_empty_avatar)
-                .error(R.drawable.ic_error)
-                .timeout(10_000)
-                .circleCrop()
-                .into(avatar)
+            avatar.loadCircleCrop(url)
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
