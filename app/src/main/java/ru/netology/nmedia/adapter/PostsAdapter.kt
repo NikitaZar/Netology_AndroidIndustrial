@@ -5,14 +5,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.view.load
 import ru.netology.nmedia.view.loadCircleCrop
 
 interface OnInteractionListener {
@@ -51,9 +52,17 @@ class PostViewHolder(
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
             isSent.isChecked = !post.isNotSent
+            attachment.isVisible = false
 
-            val url = "${BuildConfig.BASE_URL}avatars/${post.authorAvatar}"
-            avatar.loadCircleCrop(url)
+            val avatarUrl = "${BuildConfig.BASE_URL}avatars/${post.authorAvatar}"
+            avatar.loadCircleCrop(avatarUrl)
+
+            post.attachment?.let { postAttachment ->
+                val attachmentUrl = "${BuildConfig.BASE_URL}media/${postAttachment.url}"
+                attachment.load(attachmentUrl)
+                attachment.isVisible = true
+            }
+
 
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
