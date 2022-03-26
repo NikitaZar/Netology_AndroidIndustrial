@@ -7,7 +7,7 @@ import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 
 interface PostRepository {
-    val data: LiveData<List<Post>>
+    val data: Flow<List<Post>>
     fun getNewerCount(id: Long): Flow<Int>
     suspend fun likeById(id: Long)
     suspend fun dislikeById(id: Long)

@@ -23,4 +23,7 @@
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="menu_resend">Отправить повторно</string>
     <string name="refresh">Свежие записи</string>
+    <string name="sign_in">Вход</string>
+    <string name="sign_up">Регистрация</string>
+    <string name="sign_out">Выход</string>
 </resources>

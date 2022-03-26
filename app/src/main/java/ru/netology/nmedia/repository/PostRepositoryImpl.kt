@@ -26,7 +26,9 @@ import java.io.IOException
 
 class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
-    override val data = dao.getVisible().map { list -> list.toDto() }
+    override val data = dao.getVisible()
+        .map(List<PostEntity>::toDto)
+        .flowOn(Dispatchers.Default)
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {
         while (true) {
