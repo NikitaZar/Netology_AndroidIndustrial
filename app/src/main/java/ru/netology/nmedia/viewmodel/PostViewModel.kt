@@ -182,4 +182,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun updateUser(login: String, pass: String) = viewModelScope.launch {
+        try {
+            val authData = repository.updateUser(login, pass)
+            AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+        } catch (e: Exception) {
+            Log.i("updateUser", e.message.toString())
+        }
+    }
 }

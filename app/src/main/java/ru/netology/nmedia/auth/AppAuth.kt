@@ -28,8 +28,8 @@ class AppAuth private constructor(context: Context) {
     val authStateFlow: StateFlow<AuthState> = _authStateFlow.asStateFlow()
 
     @Synchronized
-    fun setAuth(id: Long, token: String) {
-        _authStateFlow.value = AuthState(id, token)
+    fun setAuth(id: Long, token: String, login: String) {
+        _authStateFlow.value = AuthState(id, token, login)
         with(prefs.edit()) {
             putLong(idKey, id)
             putString(tokenKey, token)
@@ -64,4 +64,9 @@ class AppAuth private constructor(context: Context) {
     }
 }
 
-data class AuthState(val id: Long = 0, val token: String? = null)
+data class AuthState(
+    val id: Long = 0,
+    val token: String? = null,
+    @Transient
+    val login: String? = null
+)

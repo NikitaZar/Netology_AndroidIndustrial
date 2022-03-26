@@ -31,4 +31,9 @@
         android:name="ru.netology.nmedia.activity.FullscreenAttachmentFragment"
         android:label="fragment_fullscreen_attachment"
         tools:layout="@layout/fragment_fullscreen_attachment" />
+    <fragment
+        android:id="@+id/authFragment"
+        android:name="ru.netology.nmedia.activity.AuthFragment"
+        android:label="fragment_auth"
+        tools:layout="@layout/fragment_auth" />
 </navigation>
