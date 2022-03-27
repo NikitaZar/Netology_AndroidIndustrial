@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.messaging.FirebaseMessaging
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
@@ -71,8 +72,13 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
                 true
             }
             R.id.signout -> {
-                // TODO: just hardcode it, implementation must be in homework
-                AppAuth.getInstance().removeAuth()
+                MaterialAlertDialogBuilder(this)
+                    .setMessage(resources.getString(R.string.msg_logoff))
+                    .setNegativeButton(resources.getString(R.string.dialog_decline)) { _, _ ->
+                        //nothing to do
+                    }.setPositiveButton(resources.getString(R.string.dialog_accept)) { _, _ ->
+                        AppAuth.getInstance().removeAuth()
+                    }.show()
                 true
             }
             else -> super.onOptionsItemSelected(item)

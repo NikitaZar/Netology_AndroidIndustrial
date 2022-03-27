@@ -2,6 +2,7 @@ package ru.netology.nmedia.auth
 
 import android.content.Context
 import kotlinx.coroutines.flow.*
+import ru.netology.nmedia.model.AuthState
 
 class AppAuth private constructor(context: Context) {
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
@@ -26,7 +27,6 @@ class AppAuth private constructor(context: Context) {
     }
 
     val authStateFlow: StateFlow<AuthState> = _authStateFlow.asStateFlow()
-    val authenticated = authStateFlow.value.id != 0L
 
     @Synchronized
     fun setAuth(id: Long, token: String, login: String) {
@@ -64,10 +64,3 @@ class AppAuth private constructor(context: Context) {
         private fun buildAuth(context: Context): AppAuth = AppAuth(context)
     }
 }
-
-data class AuthState(
-    val id: Long = 0,
-    val token: String? = null,
-    @Transient
-    val login: String? = null
-)

@@ -33,4 +33,7 @@
     <string name="name">Имя</string>
     <string name="confirm_pass">Подтверждение пароля</string>
     <string name="pass_different">Пароли не совпадают</string>
+    <string name="msg_logoff">Уже уходите?</string>
+    <string name="dialog_accept">Да</string>
+    <string name="dialog_decline">Нет</string>
 </resources>

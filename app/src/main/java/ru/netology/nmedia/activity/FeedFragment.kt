@@ -101,7 +101,6 @@ class FeedFragment : Fragment() {
         }
 
         binding.fab.setOnClickListener {
-//            when (AppAuth.getInstance().authenticated){ TODO
             when (AppAuth.getInstance().authStateFlow.value.id != 0L){
                 false -> findNavController().navigate(R.id.action_feedFragment_to_authFragment)
                 true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)

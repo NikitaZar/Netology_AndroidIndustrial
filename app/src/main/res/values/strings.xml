@@ -35,4 +35,7 @@
     <string name="registration">Registration</string>
     <string name="name">Name</string>
     <string name="pass_different">Passwords does not match</string>
+    <string name="msg_logoff">Do you logoff?</string>
+    <string name="dialog_accept">Yes</string>
+    <string name="dialog_decline">No</string>
 </resources>

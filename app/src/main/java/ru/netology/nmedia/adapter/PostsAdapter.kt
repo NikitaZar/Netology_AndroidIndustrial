@@ -98,9 +98,6 @@ class PostViewHolder(
             }
 
             like.setOnClickListener {
-                Log.i("authenticated", AppAuth.getInstance().authStateFlow.value.id.toString())
-                Log.i("authenticated", AppAuth.getInstance().authenticated.toString())
-//                if (!AppAuth.getInstance().authenticated) { TODO
                 if (AppAuth.getInstance().authStateFlow.value.id == 0L) {
                     onInteractionListener.onAuth()
                     return@setOnClickListener
