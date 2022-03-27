@@ -26,6 +26,7 @@ class AppAuth private constructor(context: Context) {
     }
 
     val authStateFlow: StateFlow<AuthState> = _authStateFlow.asStateFlow()
+    val authenticated = authStateFlow.value.id != 0L
 
     @Synchronized
     fun setAuth(id: Long, token: String, login: String) {

@@ -6,12 +6,13 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.view.isVisible
-import androidx.navigation.fragment.findNavController
+import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.view.load
@@ -24,6 +25,7 @@ interface OnInteractionListener {
     fun onShare(post: Post)
     fun onResend(post: Post)
     fun onFullscreenAttachment(attachmentUrl: String)
+    fun onAuth()
 }
 
 class PostsAdapter(
@@ -96,6 +98,13 @@ class PostViewHolder(
             }
 
             like.setOnClickListener {
+                Log.i("authenticated", AppAuth.getInstance().authStateFlow.value.id.toString())
+                Log.i("authenticated", AppAuth.getInstance().authenticated.toString())
+//                if (!AppAuth.getInstance().authenticated) { TODO
+                if (AppAuth.getInstance().authStateFlow.value.id == 0L) {
+                    onInteractionListener.onAuth()
+                    return@setOnClickListener
+                }
                 onInteractionListener.onLike(post)
             }
 
