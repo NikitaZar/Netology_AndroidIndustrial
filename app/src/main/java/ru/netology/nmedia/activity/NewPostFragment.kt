@@ -1,7 +1,6 @@
 package ru.netology.nmedia.activity
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
+import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class NewPostFragment : Fragment() {
@@ -21,7 +21,11 @@ class NewPostFragment : Fragment() {
         var Bundle.textArg: String? by StringArg
     }
 
-    private val viewModel: PostViewModel by viewModels(
+    private val postVewModel: PostViewModel by viewModels(
+        ownerProducer = ::requireParentFragment
+    )
+
+    private val authViewModel: AuthViewModel by viewModels(
         ownerProducer = ::requireParentFragment
     )
 
@@ -40,24 +44,29 @@ class NewPostFragment : Fragment() {
             ?.let(binding.edit::setText)
 
         binding.ok.setOnClickListener {
-            viewModel.changeContent(binding.edit.text.toString())
-            viewModel.save()
+            postVewModel.changeContent(binding.edit.text.toString())
+            postVewModel.save()
             AndroidUtils.hideKeyboard(requireView())
             findNavController().navigateUp()
         }
-        viewModel.postCreated.observe(viewLifecycleOwner) {
-            viewModel.loadPosts()
+        postVewModel.postCreated.observe(viewLifecycleOwner) {
+            postVewModel.loadPosts()
         }
 
-        viewModel.dataState.observe(viewLifecycleOwner) { state ->
+        postVewModel.dataState.observe(viewLifecycleOwner) { state ->
             if (state.error) {
                 Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
                     .setAction(R.string.retry_loading) {
-                        viewModel.retryActon(state.actionType, state.actionId)
+                        postVewModel.retryActon(state.actionType, state.actionId)
                     }.show()
             }
         }
 
+        authViewModel.data.observe(viewLifecycleOwner) {
+            if (authViewModel.data.value?.id == 0L) {
+                findNavController().navigateUp()
+            }
+        }
         return binding.root
     }
 }
