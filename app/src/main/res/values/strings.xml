@@ -31,5 +31,8 @@
     <string name="authorisation_introduction">Enter your login and password:</string>
     <string name="login">Login</string>
     <string name="pass">Pass</string>
-
+    <string name="confirm_pass">Confirm pass</string>
+    <string name="registration">Registration</string>
+    <string name="name">Name</string>
+    <string name="pass_different">Passwords does not match</string>
 </resources>

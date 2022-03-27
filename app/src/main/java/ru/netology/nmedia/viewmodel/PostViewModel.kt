@@ -190,4 +190,13 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             Log.i("updateUser", e.message.toString())
         }
     }
+
+    fun registerUser(login: String, pass: String, name: String) = viewModelScope.launch {
+        try {
+            val authData = repository.registerUser(login, pass, name)
+            AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+        } catch (e: Exception) {
+            Log.i("updateUser", e.message.toString())
+        }
+    }
 }

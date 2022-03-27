@@ -19,9 +19,6 @@ class AuthFragment : Fragment() {
     private val postViewModel: PostViewModel by viewModels(
         ownerProducer = ::requireParentFragment
     )
-    private val authViewModel: AuthViewModel by viewModels(
-        ownerProducer = ::requireParentFragment
-    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,9 +29,6 @@ class AuthFragment : Fragment() {
 
         with(binding) {
 
-            //password.inputType = InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-            //password.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD
-
             btSignIn.setOnClickListener {
                 val login = login.text.toString()
                 val pass = password.text.toString()
@@ -42,11 +36,6 @@ class AuthFragment : Fragment() {
                 findNavController().navigateUp()
             }
         }
-
-        authViewModel.data.observe(viewLifecycleOwner){
-
-        }
-
 
         return binding.root
     }

@@ -167,6 +167,18 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             throw UnknownException
         }
     }
+
+    override suspend fun registerUser(login: String, pass: String, name: String): AuthData {
+        try {
+            val response = PostsApi.retrofitService.registerUser(login, pass, name)
+            checkResponse(response)
+            return response.body() ?: throw ApiException(response.code(), response.message())
+        } catch (e: IOException) {
+            throw NetworkException
+        } catch (e: Exception) {
+            throw UnknownException
+        }
+    }
 }
 
 private fun checkResponse(response: Response<out Any>) {

@@ -18,5 +18,6 @@ interface PostRepository {
     suspend fun asVisibleAll()
     suspend fun uploadMedia(upload: MediaUpload): Media
     suspend fun saveWithAttachment(post: Post, upload: MediaUpload, retry: Boolean)
-    suspend fun updateUser(long: String, pass: String): AuthData
+    suspend fun updateUser(login: String, pass: String): AuthData
+    suspend fun registerUser(login: String, pass: String, name: String): AuthData
 }
