@@ -1,6 +1,8 @@
 package ru.netology.nmedia.activity
 
 import android.os.Bundle
+import android.text.method.PasswordTransformationMethod
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -43,12 +45,26 @@ class RegistrationFragment : Fragment() {
                             postViewModel.registerUser(login, pass, name)
                             findNavController().navigateUp()
                         }
-                        false -> Snackbar.make(binding.root, R.string.pass_different, Snackbar.LENGTH_SHORT).show()
+                        false -> Snackbar.make(
+                            binding.root,
+                            R.string.pass_different,
+                            Snackbar.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
 
-            return binding.root
+            passwordVisibility.setOnClickListener {
+                Log.i("setOnClickListener", "true")
+                password.transformationMethod?.let {
+                    password.transformationMethod = null
+                } ?: run {
+                    password.transformationMethod = PasswordTransformationMethod()
+                }
+                confirmPassword.transformationMethod = password.transformationMethod
+            }
         }
+
+        return binding.root
     }
 }

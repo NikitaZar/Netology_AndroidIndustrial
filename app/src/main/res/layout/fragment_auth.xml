@@ -30,7 +30,7 @@
 
         <EditText
             android:id="@+id/login"
-            android:layout_width="@dimen/space32x"
+            android:layout_width="@dimen/space64x"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/space2x"
             android:gravity="start"
@@ -39,17 +39,31 @@
             android:padding="@dimen/space2x"
             android:textSize="16sp" />
 
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="@dimen/space32x"
-            android:layout_height="wrap_content"
-            android:layout_margin="@dimen/space2x"
-            android:gravity="start"
-            android:hint="@string/pass"
-            android:inputType="textPassword"
-            android:maxLines="1"
-            android:padding="@dimen/space2x"
-            android:textSize="16sp" />
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="@dimen/space64x"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/space2x"
+                android:gravity="start"
+                android:hint="@string/pass"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:padding="@dimen/space2x"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/password_visibility"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/space2x"
+                android:src="@drawable/ic_baseline_visibility_24"
+                android:layout_gravity="center_vertical|end"
+                />
+        </FrameLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/bt_sign_in"

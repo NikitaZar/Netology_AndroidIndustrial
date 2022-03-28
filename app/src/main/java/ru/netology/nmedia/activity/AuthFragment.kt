@@ -1,6 +1,7 @@
 package ru.netology.nmedia.activity
 
 import android.os.Bundle
+import android.text.method.PasswordTransformationMethod
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -34,6 +35,14 @@ class AuthFragment : Fragment() {
                 val pass = password.text.toString()
                 postViewModel.updateUser(login, pass)
                 findNavController().navigateUp()
+            }
+
+            passwordVisibility.setOnClickListener {
+                password.transformationMethod?.let {
+                    password.transformationMethod = null
+                } ?: run {
+                    password.transformationMethod = PasswordTransformationMethod()
+                }
             }
         }
 
