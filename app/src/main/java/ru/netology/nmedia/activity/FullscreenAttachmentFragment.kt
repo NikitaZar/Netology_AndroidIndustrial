@@ -32,6 +32,4 @@ class FullscreenAttachmentFragment : Fragment() {
 
         return binding.root
     }
-
-
 }
