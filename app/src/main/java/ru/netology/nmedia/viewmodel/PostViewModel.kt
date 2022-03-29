@@ -1,15 +1,21 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
+import androidx.core.net.toFile
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.http.Part
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.ActionType
@@ -18,6 +24,7 @@ import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
+import java.io.File
 
 private val empty = Post(
     id = 0,
@@ -61,6 +68,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val photo: LiveData<PhotoModel>
         get() = _photo
 
+    private val _avatar = MutableLiveData(noPhoto)
+    val avatar: LiveData<PhotoModel>
+        get() = _avatar
+
     init {
         loadPosts()
     }
@@ -77,7 +88,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save() = viewModelScope.launch {
         try {
-
             edited.value?.let { post ->
                 when (_photo.value) {
                     noPhoto -> repository.save(post, false)
@@ -182,6 +192,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun changePhoto(uri: Uri?, file: File?) {
+        _photo.value = PhotoModel(uri, file)
+    }
+
+    fun changeAvatar(uri: Uri?) {
+        _avatar.value = PhotoModel(uri, uri?.toFile())
+    }
+
     fun updateUser(login: String, pass: String) = viewModelScope.launch {
         try {
             val authData = repository.updateUser(login, pass)
@@ -193,8 +211,18 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun registerUser(login: String, pass: String, name: String) = viewModelScope.launch {
         try {
-            val authData = repository.registerUser(login, pass, name)
-            AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+            when (_avatar.value) {
+                noPhoto -> {
+                    val authData = repository.registerUser(login, pass, name)
+                    AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+                }
+                else -> {
+                    _avatar.value?.file?.let { file ->
+                        val authData = repository.registerWithPhoto(login, pass, name, MediaUpload(file))
+                        AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+                    }
+                }
+            }
         } catch (e: Exception) {
             Log.i("updateUser", e.message.toString())
         }

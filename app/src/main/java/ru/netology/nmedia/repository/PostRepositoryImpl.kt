@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netology.nmedia.api.PostsApi
 import retrofit2.Response
 import ru.netology.nmedia.dao.PostDao
@@ -178,6 +179,22 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         } catch (e: Exception) {
             throw UnknownException
         }
+    }
+
+    override suspend fun registerWithPhoto(login: String, pass: String, name: String, upload: MediaUpload): AuthData {
+        val media = MultipartBody.Part.createFormData(
+            "file", upload.file.name, upload.file.asRequestBody()
+        )
+
+        val response = PostsApi.retrofitService.registerWithPhoto(
+            login.toRequestBody(),
+            pass.toRequestBody(),
+            name.toRequestBody(),
+            media
+        )
+
+        checkResponse(response)
+        return response.body() ?: throw ApiException(response.code(), response.message())
     }
 }
 

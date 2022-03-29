@@ -26,6 +26,43 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
+        <FrameLayout
+            android:id="@+id/avatar_container"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/space32x">
+
+            <ImageView
+                android:id="@+id/avatar"
+                android:layout_width="@dimen/space16x"
+                android:layout_height="@dimen/space16x"
+                android:src="@drawable/ic_empty_avatar"
+                android:layout_margin="@dimen/space6x"/>
+
+            <ImageView
+                android:id="@+id/pick_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/space3x"
+                android:src="@drawable/ic_photo_24dp"
+                android:layout_gravity="center|bottom"/>
+
+            <ImageView
+                android:id="@+id/take_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/space3x"
+                android:src="@drawable/ic_camera_24dp"
+                android:layout_gravity="start|bottom"/>
+
+            <ImageView
+                android:id="@+id/remove_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/space3x"
+                android:src="@drawable/ic_delete_24dp"
+                android:layout_gravity="end|bottom"/>
+        </FrameLayout>
+
         <EditText
             android:id="@+id/name"
             android:layout_width="@dimen/space64x"
