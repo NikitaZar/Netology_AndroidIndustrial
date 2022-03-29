@@ -75,7 +75,7 @@ class FeedFragment : Fragment() {
 
         binding.list.adapter = adapter
         viewModel.data.observe(viewLifecycleOwner) { data ->
-            val isNewPost = adapter.itemCount < data.posts.size
+            val isNewPost = (adapter.itemCount < data.posts.size) && (adapter.itemCount > 0)
             adapter.submitList(data.posts) {
                 if (isNewPost) {
                     binding.list.smoothScrollToPosition(0)

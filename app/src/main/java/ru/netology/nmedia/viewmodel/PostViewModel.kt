@@ -182,6 +182,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
 
+    fun changePhoto(uri: Uri?, file: File?) {
+        _photo.value = PhotoModel(uri, file)
+    }
+
     fun refreshPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(refreshing = true)
