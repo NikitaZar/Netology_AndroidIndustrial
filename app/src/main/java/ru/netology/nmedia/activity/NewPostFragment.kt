@@ -62,11 +62,22 @@ class NewPostFragment : Fragment() {
             }
         }
 
+        postVewModel.photo.observe(viewLifecycleOwner) {
+            if (it.uri == null) {
+                binding.photoContainer.visibility = View.GONE
+                return@observe
+            }
+
+            binding.photoContainer.visibility = View.VISIBLE
+            binding.photo.setImageURI(it.uri)
+        }
+
         authViewModel.data.observe(viewLifecycleOwner) {
             if (authViewModel.data.value?.id == 0L) {
                 findNavController().navigateUp()
             }
         }
+
         return binding.root
     }
 }

@@ -36,4 +36,5 @@
     <string name="msg_logoff">Уже уходите?</string>
     <string name="dialog_accept">Да</string>
     <string name="dialog_decline">Нет</string>
+    <string name="remove">Удалить</string>
 </resources>
