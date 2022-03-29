@@ -1,6 +1,7 @@
 package ru.netology.nmedia.viewmodel
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
@@ -15,6 +16,7 @@ import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
+import java.io.File
 
 private val empty = Post(
     id = 0,
@@ -156,6 +158,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
+
+    fun changePhoto(uri: Uri?, file: File?) {
+        _photo.value = PhotoModel(uri, file)
+    }
 
     fun refreshPosts() = viewModelScope.launch {
         try {

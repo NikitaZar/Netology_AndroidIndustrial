@@ -23,4 +23,5 @@
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="menu_resend">Отправить повторно</string>
     <string name="refresh">Свежие записи</string>
+    <string name="remove">Удалить</string>
 </resources>
