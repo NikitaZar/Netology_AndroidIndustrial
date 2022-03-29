@@ -8,6 +8,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -64,11 +65,21 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.signin -> {
-                findNavController(R.id.nav_host_fragment).navigate(R.id.authFragment)
+                findNavController(R.id.nav_host_fragment)
+                    .navigate(
+                        R.id.authFragment,
+                        null,
+                        NavOptions.Builder().setLaunchSingleTop(true).build()
+                    )
                 true
             }
             R.id.signup -> {
-                findNavController(R.id.nav_host_fragment).navigate(R.id.registrationFragment)
+                findNavController(R.id.nav_host_fragment)
+                    .navigate(
+                        R.id.registrationFragment,
+                        null,
+                        NavOptions.Builder().setLaunchSingleTop(true).build()
+                    )
                 true
             }
             R.id.signout -> {
