@@ -28,42 +28,31 @@
             android:textSize="16sp"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/login"
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="@dimen/space64x"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/space2x"
-            android:gravity="start"
-            android:hint="@string/login"
-            android:maxLines="1"
-            android:padding="@dimen/space2x"
-            android:textSize="16sp" />
+            android:hint="@string/login">
 
-        <FrameLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="@dimen/space2x" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <EditText
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="@dimen/space64x"
+            android:layout_height="wrap_content"
+            android:hint="@string/pass"
+            app:endIconMode="password_toggle">
+
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/password"
-                android:layout_width="@dimen/space64x"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="@dimen/space2x"
-                android:gravity="start"
-                android:hint="@string/pass"
-                android:inputType="textPassword"
-                android:maxLines="1"
-                android:padding="@dimen/space2x"
-                android:textSize="16sp" />
-
-            <ImageView
-                android:id="@+id/password_visibility"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/space2x"
-                android:src="@drawable/ic_baseline_visibility_24"
-                android:layout_gravity="center_vertical|end"
-                />
-        </FrameLayout>
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/bt_sign_in"

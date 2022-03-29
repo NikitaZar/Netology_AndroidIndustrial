@@ -19,5 +19,7 @@
     <dimen name="space16x">64dp</dimen>
     <dimen name="space32x">128dp</dimen>
     <dimen name="space64x">256dp</dimen>
+    <dimen name="space80x">320dp</dimen>
+    <dimen name="space96x">384dp</dimen>
 </resources>
 

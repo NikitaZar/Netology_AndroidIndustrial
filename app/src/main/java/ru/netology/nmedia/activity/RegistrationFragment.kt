@@ -113,16 +113,6 @@ class RegistrationFragment : Fragment() {
                 }
                 binding.avatar.setImageURI(it.uri)
             }
-
-            passwordVisibility.setOnClickListener {
-                Log.i("setOnClickListener", "true")
-                password.transformationMethod?.let {
-                    password.transformationMethod = null
-                } ?: run {
-                    password.transformationMethod = PasswordTransformationMethod()
-                }
-                confirmPassword.transformationMethod = password.transformationMethod
-            }
         }
 
         return binding.root
