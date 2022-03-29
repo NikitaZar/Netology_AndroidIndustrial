@@ -20,6 +20,9 @@ data class Post(
     @Transient
     val isNotSent: Boolean = false,
     @Transient
-    var isVisible: Boolean = false
+    var isVisible: Boolean = false,
+
+    @SerializedName("attachment")
+    val attachment: Attachment? = null,
 )
 
