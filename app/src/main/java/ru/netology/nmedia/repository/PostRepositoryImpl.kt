@@ -1,19 +1,16 @@
 package ru.netology.nmedia.repository
 
 import android.util.Log
-import androidx.lifecycle.map
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netology.nmedia.api.PostsApi
-import ru.netology.nmedia.dto.Post
 import retrofit2.Response
 import ru.netology.nmedia.dao.PostDao
-import ru.netology.nmedia.dto.Attachment
-import ru.netology.nmedia.dto.Media
-import ru.netology.nmedia.dto.MediaUpload
+import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
@@ -26,7 +23,9 @@ import java.io.IOException
 
 class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
-    override val data = dao.getVisible().map { list -> list.toDto() }
+    override val data = dao.getVisible()
+        .map(List<PostEntity>::toDto)
+        .flowOn(Dispatchers.Default)
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {
         while (true) {
@@ -134,10 +133,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             )
 
             val response = PostsApi.retrofitService.upload(media)
-            if (!response.isSuccessful) {
-                throw ApiException(response.code(), response.message())
-            }
-
+            checkResponse(response)
             return response.body() ?: throw ApiException(response.code(), response.message())
         } catch (e: IOException) {
             throw NetworkException
@@ -159,6 +155,46 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         } catch (e: Exception) {
             throw UnknownException
         }
+    }
+
+    override suspend fun updateUser(login: String, pass: String): AuthData {
+        try {
+            val response = PostsApi.retrofitService.updateUser(login, pass)
+            checkResponse(response)
+            return response.body() ?: throw ApiException(response.code(), response.message())
+        } catch (e: IOException) {
+            throw NetworkException
+        } catch (e: Exception) {
+            throw UnknownException
+        }
+    }
+
+    override suspend fun registerUser(login: String, pass: String, name: String): AuthData {
+        try {
+            val response = PostsApi.retrofitService.registerUser(login, pass, name)
+            checkResponse(response)
+            return response.body() ?: throw ApiException(response.code(), response.message())
+        } catch (e: IOException) {
+            throw NetworkException
+        } catch (e: Exception) {
+            throw UnknownException
+        }
+    }
+
+    override suspend fun registerWithPhoto(login: String, pass: String, name: String, upload: MediaUpload): AuthData {
+        val media = MultipartBody.Part.createFormData(
+            "file", upload.file.name, upload.file.asRequestBody()
+        )
+
+        val response = PostsApi.retrofitService.registerWithPhoto(
+            login.toRequestBody(),
+            pass.toRequestBody(),
+            name.toRequestBody(),
+            media
+        )
+
+        checkResponse(response)
+        return response.body() ?: throw ApiException(response.code(), response.message())
     }
 }
 

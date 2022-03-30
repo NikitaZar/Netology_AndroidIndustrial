@@ -85,5 +85,4 @@
         app:layout_anchor="@id/bottomAppBar"
         app:srcCompat="@drawable/ic_ok_24dp" />
 
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

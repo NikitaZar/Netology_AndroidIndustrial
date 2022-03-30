@@ -3,11 +3,19 @@ package ru.netology.nmedia.viewmodel
 import android.app.Application
 import android.net.Uri
 import android.util.Log
+import androidx.core.net.toFile
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.http.Part
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.ActionType
@@ -20,6 +28,7 @@ import java.io.File
 
 private val empty = Post(
     id = 0,
+    authorId = 0,
     content = "",
     author = "",
     authorAvatar = "",
@@ -34,7 +43,18 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         PostRepositoryImpl(AppDb.getInstance(application).postDao())
 
     private val _dataState = MutableLiveData(FeedModelState())
-    val data: LiveData<FeedModel> = repository.data.map { FeedModel(it) }
+
+    val data: LiveData<FeedModel> = AppAuth.getInstance()
+        .authStateFlow
+        .flatMapLatest { (myId, _) ->
+            repository.data
+                .map { posts ->
+                    FeedModel(
+                        posts.map { it.copy(ownedByMe = it.authorId == myId) }
+                    )
+                }
+        }.asLiveData(Dispatchers.Default)
+
     val dataState: LiveData<FeedModelState>
         get() = _dataState
 
@@ -47,6 +67,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _photo = MutableLiveData(noPhoto)
     val photo: LiveData<PhotoModel>
         get() = _photo
+
+    private val _avatar = MutableLiveData(noPhoto)
+    val avatar: LiveData<PhotoModel>
+        get() = _avatar
 
     init {
         loadPosts()
@@ -64,7 +88,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save() = viewModelScope.launch {
         try {
-
             edited.value?.let { post ->
                 when (_photo.value) {
                     noPhoto -> repository.save(post, false)
@@ -163,14 +186,35 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _photo.value = PhotoModel(uri, file)
     }
 
-    fun refreshPosts() = viewModelScope.launch {
+    fun changeAvatar(uri: Uri?) {
+        _avatar.value = PhotoModel(uri, uri?.toFile())
+    }
+
+    fun updateUser(login: String, pass: String) = viewModelScope.launch {
         try {
-            _dataState.value = FeedModelState(refreshing = true)
-            repository.getAll()
-            _dataState.value = FeedModelState()
+            val authData = repository.updateUser(login, pass)
+            AppAuth.getInstance().setAuth(authData.id, authData.token, login)
         } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true)
+            Log.i("updateUser", e.message.toString())
         }
     }
 
+    fun registerUser(login: String, pass: String, name: String) = viewModelScope.launch {
+        try {
+            when (_avatar.value) {
+                noPhoto -> {
+                    val authData = repository.registerUser(login, pass, name)
+                    AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+                }
+                else -> {
+                    _avatar.value?.file?.let { file ->
+                        val authData = repository.registerWithPhoto(login, pass, name, MediaUpload(file))
+                        AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.i("updateUser", e.message.toString())
+        }
+    }
 }

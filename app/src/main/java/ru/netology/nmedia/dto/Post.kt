@@ -7,6 +7,8 @@ data class Post(
     val id: Long,
     @SerializedName("author")
     val author: String,
+    @SerializedName("authorId")
+    val authorId: Long,
     @SerializedName("authorAvatar")
     val authorAvatar: String,
     @SerializedName("content")
@@ -21,7 +23,8 @@ data class Post(
     val isNotSent: Boolean = false,
     @Transient
     var isVisible: Boolean = false,
-
+    @Transient
+    val ownedByMe: Boolean = false,
     @SerializedName("attachment")
     val attachment: Attachment? = null,
 )

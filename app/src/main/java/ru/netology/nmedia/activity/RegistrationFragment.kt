@@ -3,51 +3,39 @@ package ru.netology.nmedia.activity
 import android.app.Activity
 import android.net.Uri
 import android.os.Bundle
+import android.text.method.PasswordTransformationMethod
+import android.util.Log
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toFile
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
-import ru.netology.nmedia.databinding.FragmentNewPostBinding
-import ru.netology.nmedia.util.AndroidUtils
-import ru.netology.nmedia.util.StringArg
-import ru.netology.nmedia.viewmodel.AuthViewModel
+import ru.netology.nmedia.databinding.FragmentRegistrationBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
 
-class NewPostFragment : Fragment() {
+class RegistrationFragment : Fragment() {
 
-    companion object {
-        var Bundle.textArg: String? by StringArg
-    }
-
-    private val postVewModel: PostViewModel by viewModels(
+    private val postViewModel: PostViewModel by viewModels(
         ownerProducer = ::requireParentFragment
     )
 
-    private val authViewModel: AuthViewModel by viewModels(
-        ownerProducer = ::requireParentFragment
-    )
+    companion object {}
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val binding = FragmentNewPostBinding.inflate(
-            inflater,
-            container,
-            false
-        )
-
-        arguments?.textArg
-            ?.let(binding.edit::setText)
+        val binding = FragmentRegistrationBinding.inflate(inflater, container, false)
 
         val pickPhotoLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -61,7 +49,7 @@ class NewPostFragment : Fragment() {
                     }
                     Activity.RESULT_OK -> {
                         val uri: Uri? = it.data?.data
-                        postVewModel.changePhoto(uri, uri?.toFile())
+                        postViewModel.changeAvatar(uri)
                     }
                 }
             }
@@ -89,41 +77,41 @@ class NewPostFragment : Fragment() {
         }
 
         binding.removePhoto.setOnClickListener {
-            postVewModel.changePhoto(null, null)
+            postViewModel.changeAvatar(null)
         }
 
-        binding.ok.setOnClickListener {
-            postVewModel.changeContent(binding.edit.text.toString())
-            postVewModel.save()
-            AndroidUtils.hideKeyboard(requireView())
-            findNavController().navigateUp()
-        }
-        postVewModel.postCreated.observe(viewLifecycleOwner) {
-            postVewModel.loadPosts()
-        }
+        with(binding) {
+            btSignUp.setOnClickListener {
+                val name = name.text.toString()
+                val login = login.text.toString()
+                val pass = password.text.toString()
+                val confirmPass = confirmPassword.text.toString()
 
-        postVewModel.dataState.observe(viewLifecycleOwner) { state ->
-            if (state.error) {
-                Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(R.string.retry_loading) {
-                        postVewModel.retryActon(state.actionType, state.actionId)
-                    }.show()
+                if (name.isNotBlank() &&
+                    login.isNotBlank() &&
+                    pass.isNotBlank()
+                ) {
+                    when (pass == confirmPass) {
+                        true -> {
+                            postViewModel.registerUser(login, pass, name)
+                            findNavController().navigateUp()
+                        }
+                        false -> Snackbar.make(
+                            binding.root,
+                            R.string.pass_different,
+                            Snackbar.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
-        }
 
-        postVewModel.photo.observe(viewLifecycleOwner) {
-            if (it.uri == null) {
-                binding.photoContainer.visibility = View.GONE
-                return@observe
-            }
-
-            binding.photoContainer.visibility = View.VISIBLE
-            binding.photo.setImageURI(it.uri)
-        }
-
-        authViewModel.data.observe(viewLifecycleOwner) {
-            if (authViewModel.data.value?.id == 0L) {
-                findNavController().navigateUp()
+            postViewModel.avatar.observe(viewLifecycleOwner) {
+                if (it.uri == null) {
+                    val emptyAvatarDrawable = ResourcesCompat.getDrawable(resources, R.drawable.ic_empty_avatar, null)
+                    binding.avatar.setImageDrawable(emptyAvatarDrawable)
+                    return@observe
+                }
+                binding.avatar.setImageURI(it.uri)
             }
         }
 

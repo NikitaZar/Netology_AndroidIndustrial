@@ -25,5 +25,18 @@
     <string name="no_network_exception" translatable="false">No network exception</string>
     <string name="unknown_exception" translatable="false">Unknown exception</string>
     <string name="refresh">Refresh</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="authorisation_introduction">Enter your login and password:</string>
+    <string name="login">Login</string>
+    <string name="pass">Pass</string>
+    <string name="confirm_pass">Confirm pass</string>
+    <string name="registration">Registration</string>
+    <string name="name">Name</string>
+    <string name="pass_different">Passwords does not match</string>
+    <string name="msg_logoff">Do you logoff?</string>
+    <string name="dialog_accept">Yes</string>
+    <string name="dialog_decline">No</string>
     <string name="remove">Remove</string>
 </resources>

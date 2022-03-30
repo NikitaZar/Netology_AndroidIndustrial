@@ -12,6 +12,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FullscreenAttachmentFragment.Companion.url
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
@@ -27,7 +28,7 @@ class FeedFragment : Fragment() {
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
-        val adapter = PostsAdapter(requireContext(), object : OnInteractionListener {
+        val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
             }
@@ -66,6 +67,10 @@ class FeedFragment : Fragment() {
                 )
 
             }
+
+            override fun onAuth() {
+                findNavController().navigate(R.id.action_feedFragment_to_authFragment)
+            }
         })
 
         binding.list.adapter = adapter
@@ -96,7 +101,10 @@ class FeedFragment : Fragment() {
         }
 
         binding.fab.setOnClickListener {
-            findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            when (AppAuth.getInstance().authStateFlow.value.id != 0L){
+                false -> findNavController().navigate(R.id.action_feedFragment_to_authFragment)
+                true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            }
         }
 
         binding.swipeRefresh.setOnRefreshListener {

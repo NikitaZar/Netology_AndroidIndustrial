@@ -23,5 +23,18 @@
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="menu_resend">Отправить повторно</string>
     <string name="refresh">Свежие записи</string>
+    <string name="sign_in">Вход</string>
+    <string name="sign_up">Регистрация</string>
+    <string name="sign_out">Выход</string>
+    <string name="authorisation_introduction">Введите Ваш логин и пароль:</string>
+    <string name="login">Логин</string>
+    <string name="pass">Пароль</string>
+    <string name="registration">Регистрация</string>
+    <string name="name">Имя</string>
+    <string name="confirm_pass">Подтверждение пароля</string>
+    <string name="pass_different">Пароли не совпадают</string>
+    <string name="msg_logoff">Уже уходите?</string>
+    <string name="dialog_accept">Да</string>
+    <string name="dialog_decline">Нет</string>
     <string name="remove">Удалить</string>
 </resources>

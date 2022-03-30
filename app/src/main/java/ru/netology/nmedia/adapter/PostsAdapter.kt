@@ -1,17 +1,16 @@
 package ru.netology.nmedia.adapter
 
-import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.core.view.isVisible
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.view.load
@@ -24,10 +23,10 @@ interface OnInteractionListener {
     fun onShare(post: Post)
     fun onResend(post: Post)
     fun onFullscreenAttachment(attachmentUrl: String)
+    fun onAuth()
 }
 
 class PostsAdapter(
-    private val context: Context,
     private val onInteractionListener: OnInteractionListener,
 ) : ListAdapter<Post, PostViewHolder>(PostDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -37,7 +36,7 @@ class PostsAdapter(
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val post = getItem(position)
-        holder.bind(post, context)
+        holder.bind(post)
     }
 }
 
@@ -46,7 +45,7 @@ class PostViewHolder(
     private val onInteractionListener: OnInteractionListener,
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(post: Post, context: Context) {
+    fun bind(post: Post) {
         binding.apply {
             author.text = post.author
             published.text = post.published
@@ -69,9 +68,11 @@ class PostViewHolder(
                 }
             }
 
+            menu.isVisible = post.ownedByMe
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.options_post)
+                    menu.setGroupVisible(R.id.owned, post.ownedByMe)
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
                             R.id.remove -> {
@@ -94,6 +95,10 @@ class PostViewHolder(
             }
 
             like.setOnClickListener {
+                if (AppAuth.getInstance().authStateFlow.value.id == 0L) {
+                    onInteractionListener.onAuth()
+                    return@setOnClickListener
+                }
                 onInteractionListener.onLike(post)
             }
 
