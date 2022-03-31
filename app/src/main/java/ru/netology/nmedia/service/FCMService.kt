@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -37,7 +38,8 @@ class FCMService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         val recipientId = message.data[recipientId]?.toLong()
-        recipientIdCheck(recipientId)?.let {
+        Log.i("recipientId", "$recipientId/${AppAuth.getInstance().authStateFlow.value.id}")
+        recipientIdCheck(recipientId) {
             message.data[action]?.let {
                 when (Action.valueOf(it)) {
                     Action.LIKE -> handleLike(
@@ -73,15 +75,15 @@ class FCMService : FirebaseMessagingService() {
             .notify(Random.nextInt(100_000), notification)
     }
 
-    private fun recipientIdCheck(recipientId: Long?): Long? {
+    private fun recipientIdCheck(recipientId: Long?, notify: () -> Unit) {
         val id = AppAuth.getInstance().authStateFlow.value.id
-        return when {
-            recipientId == id || recipientId == null -> id
+        when {
+            recipientId == id || recipientId == null -> notify()
             recipientId == 0L || (recipientId != id && recipientId != 0L) -> {
                 AppAuth.getInstance().sendPushToken()
-                null
+                notify()
             }
-            else -> null
+            else -> return
         }
     }
 }
