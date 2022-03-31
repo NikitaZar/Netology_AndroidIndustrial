@@ -18,6 +18,7 @@ class FCMService : FirebaseMessagingService() {
     private val action = "action"
     private val content = "content"
     private val channelId = "remote"
+    private val recipientId = "recipientId"
     private val gson = Gson()
 
     override fun onCreate() {
@@ -35,10 +36,17 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-
-        message.data[action]?.let {
-            when (Action.valueOf(it)) {
-                Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
+        val recipientId = message.data[recipientId]?.toLong()
+        recipientIdCheck(recipientId)?.let {
+            message.data[action]?.let {
+                when (Action.valueOf(it)) {
+                    Action.LIKE -> handleLike(
+                        gson.fromJson(
+                            message.data[content],
+                            Like::class.java
+                        )
+                    )
+                }
             }
         }
     }
@@ -63,6 +71,18 @@ class FCMService : FirebaseMessagingService() {
 
         NotificationManagerCompat.from(this)
             .notify(Random.nextInt(100_000), notification)
+    }
+
+    private fun recipientIdCheck(recipientId: Long?): Long? {
+        val id = AppAuth.getInstance().authStateFlow.value.id
+        return when {
+            recipientId == id || recipientId == null -> id
+            recipientId == 0L || (recipientId != id && recipientId != 0L) -> {
+                AppAuth.getInstance().sendPushToken()
+                null
+            }
+            else -> null
+        }
     }
 }
 
