@@ -37,25 +37,26 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val recipientId = message.data[recipientId]?.toLong()
-        Log.i("recipientId", "$recipientId/${AppAuth.getInstance().authStateFlow.value.id}")
-        recipientIdCheck(recipientId) {
-            message.data[action]?.let {
-                when (Action.valueOf(it)) {
-                    Action.LIKE -> handleLike(
-                        gson.fromJson(
-                            message.data[content],
-                            Like::class.java
-                        )
-                    )
-                }
-            }
+        val pushString = gson.fromJson(message.data[content], PushString::class.java)
+        Log.i("recipientId", "recipientId = ${pushString.recipientId}/ userId = ${AppAuth.getInstance().authStateFlow.value.id}")
+        recipientIdCheck(pushString.recipientId) {
+//            message.data[action]?.let {
+//                when (Action.valueOf(it)) {
+//                    Action.LIKE -> handleLike(
+//                        gson.fromJson(
+//                            message.data[content],
+//                            Like::class.java
+//                        )
+//                    )
+//                }
+//            }
+            message.data[content]?.let { handleString(pushString.content) }
         }
     }
 
     override fun onNewToken(token: String) {
         AppAuth.getInstance().sendPushToken(token)
-        println(token)
+        Log.i("token", token)
     }
 
     private fun handleLike(content: Like) {
@@ -75,13 +76,25 @@ class FCMService : FirebaseMessagingService() {
             .notify(Random.nextInt(100_000), notification)
     }
 
+    private fun handleString(content: String) {
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        NotificationManagerCompat.from(this)
+            .notify(Random.nextInt(100_000), notification)
+    }
+
     private fun recipientIdCheck(recipientId: Long?, notify: () -> Unit) {
         val id = AppAuth.getInstance().authStateFlow.value.id
         when {
-            recipientId == id || recipientId == null -> notify()
+            recipientId == id || recipientId == null -> {
+                notify()
+            }
             recipientId == 0L || (recipientId != id && recipientId != 0L) -> {
                 AppAuth.getInstance().sendPushToken()
-                notify()
             }
             else -> return
         }
@@ -97,5 +110,10 @@ data class Like(
     val userName: String,
     val postId: Long,
     val postAuthor: String,
+)
+
+data class PushString(
+    val recipientId: Long?,
+    val content: String,
 )
 
