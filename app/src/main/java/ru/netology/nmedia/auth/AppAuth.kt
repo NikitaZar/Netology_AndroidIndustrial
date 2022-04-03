@@ -1,8 +1,16 @@
 package ru.netology.nmedia.auth
 
 import android.content.Context
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import ru.netology.nmedia.api.Api
+import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.model.AuthState
+import kotlinx.coroutines.tasks.await
 
 class AppAuth private constructor(context: Context) {
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
@@ -21,6 +29,8 @@ class AppAuth private constructor(context: Context) {
                 clear()
                 apply()
             }
+
+            sendPushToken()
         } else {
             _authStateFlow = MutableStateFlow(AuthState(id, token))
         }
@@ -28,29 +38,9 @@ class AppAuth private constructor(context: Context) {
 
     val authStateFlow: StateFlow<AuthState> = _authStateFlow.asStateFlow()
 
-    @Synchronized
-    fun setAuth(id: Long, token: String, login: String) {
-        _authStateFlow.value = AuthState(id, token, login)
-        with(prefs.edit()) {
-            putLong(idKey, id)
-            putString(tokenKey, token)
-            apply()
-        }
-    }
-
-    @Synchronized
-    fun removeAuth() {
-        _authStateFlow.value = AuthState()
-        with(prefs.edit()) {
-            clear()
-            commit()
-        }
-    }
-
     companion object {
         @Volatile
         private var instance: AppAuth? = null
-
         fun getInstance(): AppAuth = synchronized(this) {
             instance ?: throw IllegalStateException(
                 "AppAuth is not initialized, you must call AppAuth.initApp(Context context) first."
@@ -62,5 +52,38 @@ class AppAuth private constructor(context: Context) {
         }
 
         private fun buildAuth(context: Context): AppAuth = AppAuth(context)
+
+    }
+
+    fun sendPushToken(token: String? = null) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val pushToken = PushToken(token ?: Firebase.messaging.token.await())
+                Api.retrofitService.save(pushToken)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    @Synchronized
+    fun setAuth(id: Long, token: String, login: String) {
+        _authStateFlow.value = AuthState(id, token, login)
+        with(prefs.edit()) {
+            putLong(idKey, id)
+            putString(tokenKey, token)
+            apply()
+        }
+        sendPushToken()
+    }
+
+    @Synchronized
+    fun removeAuth() {
+        _authStateFlow.value = AuthState()
+        with(prefs.edit()) {
+            clear()
+            apply()
+        }
+        sendPushToken()
     }
 }

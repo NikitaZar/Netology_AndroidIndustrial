@@ -67,6 +67,7 @@ dependencies {
     def retrofit_version = "2.9.0"
     def glide_version = "4.13.0"
     def image_picker_version = "2.1"
+    def coroutines_version = "1.4.1"
 
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -94,6 +95,7 @@ dependencies {
     implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
     implementation "com.github.bumptech.glide:glide:$glide_version"
     implementation "com.github.dhaval2404:imagepicker:$image_picker_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$coroutines_version"
 
 
     testImplementation "junit:junit:$junit_version"
