@@ -28,10 +28,11 @@ interface OnInteractionListener {
 
 class PostsAdapter(
     private val onInteractionListener: OnInteractionListener,
+    private val appAuth: AppAuth
 ) : ListAdapter<Post, PostViewHolder>(PostDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val binding = CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PostViewHolder(binding, onInteractionListener)
+        return PostViewHolder(binding, onInteractionListener, appAuth)
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
@@ -40,9 +41,10 @@ class PostsAdapter(
     }
 }
 
-class PostViewHolder(
+class PostViewHolder constructor(
     private val binding: CardPostBinding,
     private val onInteractionListener: OnInteractionListener,
+    private val appAuth: AppAuth
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(post: Post) {
@@ -95,7 +97,7 @@ class PostViewHolder(
             }
 
             like.setOnClickListener {
-                if (AppAuth.getInstance().authStateFlow.value.id == 0L) {
+                if (appAuth.authStateFlow.value.id == 0L) {
                     onInteractionListener.onAuth()
                     return@setOnClickListener
                 }

@@ -10,17 +10,22 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
+import javax.inject.Inject
 import kotlin.random.Random
 
-
+@AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
     private val action = "action"
     private val content = "content"
     private val channelId = "remote"
     private val recipientId = "recipientId"
     private val gson = Gson()
+
+    @Inject
+    lateinit var auth: AppAuth
 
     override fun onCreate() {
         super.onCreate()
@@ -38,7 +43,7 @@ class FCMService : FirebaseMessagingService() {
 
     override fun onMessageReceived(message: RemoteMessage) {
         val pushString = gson.fromJson(message.data[content], PushString::class.java)
-        Log.i("recipientId", "recipientId = ${pushString.recipientId}/ userId = ${AppAuth.getInstance().authStateFlow.value.id}")
+        Log.i("recipientId", "recipientId = ${pushString.recipientId}/ userId = ${auth.authStateFlow.value.id}")
         recipientIdCheck(pushString.recipientId) {
 //            message.data[action]?.let {
 //                when (Action.valueOf(it)) {
@@ -55,7 +60,7 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        AppAuth.getInstance().sendPushToken(token)
+        auth.sendPushToken(token)
         Log.i("token", token)
     }
 
@@ -88,13 +93,13 @@ class FCMService : FirebaseMessagingService() {
     }
 
     private fun recipientIdCheck(recipientId: Long?, notify: () -> Unit) {
-        val id = AppAuth.getInstance().authStateFlow.value.id
+        val id = auth.authStateFlow.value.id
         when {
             recipientId == id || recipientId == null -> {
                 notify()
             }
             recipientId == 0L || (recipientId != id && recipientId != 0L) -> {
-                AppAuth.getInstance().sendPushToken()
+                auth.sendPushToken()
             }
             else -> return
         }

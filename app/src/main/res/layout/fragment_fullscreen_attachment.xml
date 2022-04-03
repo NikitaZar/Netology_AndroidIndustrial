@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@color/black"
     android:padding="@dimen/common_spacing"
-    tools:context=".activity.FullscreenAttachmentFragment">
+    tools:context=".ui.FullscreenAttachmentFragment">
 
     <ImageView
         android:id="@+id/attachment"

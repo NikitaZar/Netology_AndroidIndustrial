@@ -1,21 +1,17 @@
 package ru.netology.nmedia.viewmodel
 
-import android.app.Application
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toFile
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import retrofit2.http.Part
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.ActionType
@@ -25,6 +21,7 @@ import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.*
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
+import javax.inject.Inject
 
 private val empty = Post(
     id = 0,
@@ -37,14 +34,16 @@ private val empty = Post(
     published = ""
 )
 
-class PostViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val repository: PostRepository =
-        PostRepositoryImpl(AppDb.getInstance(application).postDao())
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class PostViewModel @Inject constructor(
+    private val repository: PostRepository,
+    private val auth: AppAuth
+) : ViewModel() {
 
     private val _dataState = MutableLiveData(FeedModelState())
 
-    val data: LiveData<FeedModel> = AppAuth.getInstance()
+    val data: LiveData<FeedModel> = auth
         .authStateFlow
         .flatMapLatest { (myId, _) ->
             repository.data
@@ -192,8 +191,8 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateUser(login: String, pass: String) = viewModelScope.launch {
         try {
-            val authData = repository.updateUser(login, pass)
-            AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+            val authState = repository.updateUser(login, pass)
+            auth.setAuth(authState.id, authState.token, login)
         } catch (e: Exception) {
             Log.i("updateUser", e.message.toString())
         }
@@ -203,13 +202,13 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         try {
             when (_avatar.value) {
                 noPhoto -> {
-                    val authData = repository.registerUser(login, pass, name)
-                    AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+                    val authState = repository.registerUser(login, pass, name)
+                    auth.setAuth(authState.id, authState.token, login)
                 }
                 else -> {
                     _avatar.value?.file?.let { file ->
-                        val authData = repository.registerWithPhoto(login, pass, name, MediaUpload(file))
-                        AppAuth.getInstance().setAuth(authData.id, authData.token, login)
+                        val authState = repository.registerWithPhoto(login, pass, name, MediaUpload(file))
+                        auth.setAuth(authState.id, authState.token, login)
                     }
                 }
             }

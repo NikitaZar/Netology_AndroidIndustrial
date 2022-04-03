@@ -1,5 +1,6 @@
 package ru.netology.nmedia.api
 
+import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
@@ -9,8 +10,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import ru.netology.nmedia.BuildConfig
-import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.dto.AuthData
+import ru.netology.nmedia.dto.AuthState
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.dto.PushToken
@@ -21,23 +21,18 @@ private val logging = HttpLoggingInterceptor().apply {
     }
 }
 
-private val okhttp = OkHttpClient.Builder()
-    .addInterceptor(logging)
-    .addInterceptor { chain ->
-        AppAuth.getInstance().authStateFlow.value.token?.let { token ->
-            val newRequest = chain.request().newBuilder()
-                .addHeader("Authorization", token)
-                .build()
-            return@addInterceptor chain.proceed(newRequest)
+fun okhttp(vararg interceptors: Interceptor): OkHttpClient = OkHttpClient.Builder()
+    .apply {
+        interceptors.forEach {
+            this.addInterceptor(it)
         }
-        chain.proceed(chain.request())
     }
     .build()
 
-private val retrofit = Retrofit.Builder()
+fun retrofit(client: OkHttpClient): Retrofit = Retrofit.Builder()
     .addConverterFactory(GsonConverterFactory.create())
     .baseUrl(BuildConfig.BASE_API)
-    .client(okhttp)
+    .client(client)
     .build()
 
 interface ApiService {
@@ -71,7 +66,7 @@ interface ApiService {
     suspend fun updateUser(
         @Field("login") login: String,
         @Field("pass") pass: String
-    ): Response<AuthData>
+    ): Response<AuthState>
 
     @FormUrlEncoded
     @POST("users/registration")
@@ -79,7 +74,7 @@ interface ApiService {
         @Field("login") login: String,
         @Field("pass") pass: String,
         @Field("name") name: String
-    ): Response<AuthData>
+    ): Response<AuthState>
 
     @Multipart
     @POST("users/registration")
@@ -88,14 +83,8 @@ interface ApiService {
         @Part("pass") pass: RequestBody,
         @Part("name") name: RequestBody,
         @Part media: MultipartBody.Part,
-    ): Response<AuthData>
+    ): Response<AuthState>
 
     @POST("users/push-tokens")
     suspend fun save(@Body pushToken: PushToken): Response<Unit>
-}
-
-object Api {
-    val retrofitService: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
-    }
 }

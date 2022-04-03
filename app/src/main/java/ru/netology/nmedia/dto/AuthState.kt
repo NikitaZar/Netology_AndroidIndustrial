@@ -1,6 +1,6 @@
 package ru.netology.nmedia.dto
 
-data class AuthData(
+data class AuthState(
     val id: Long,
     val token: String
 )

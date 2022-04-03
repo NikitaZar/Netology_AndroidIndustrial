@@ -49,15 +49,4 @@ fun List<PostEntity>.toDto() = map { it.toDto() }
 
 fun List<Post>.toEntity() = map { PostEntity.fromDto(it) }
 
-data class AttachmentEmbeddable(
-    var url: String,
-    var type: AttachmentType,
-) {
-    fun toDto() = Attachment(url, type)
 
-    companion object {
-        fun fromDto(dto: Attachment?) = dto?.let {
-            AttachmentEmbeddable(it.url, it.type)
-        }
-    }
-}
