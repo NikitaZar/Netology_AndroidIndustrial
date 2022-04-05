@@ -1,16 +1,16 @@
-package ru.netology.nmedia.activity
+package ru.netology.nmedia.ui
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import ru.netology.nmedia.activity.FullscreenAttachmentFragment.Companion.url
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.databinding.FragmentFullscreenAttachmentBinding
-import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.view.load
 
+@AndroidEntryPoint
 class FullscreenAttachmentFragment : Fragment() {
 
     companion object {
