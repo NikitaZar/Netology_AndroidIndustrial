@@ -44,12 +44,11 @@ class PostViewModel @Inject constructor(
 
     private val _dataState = MutableLiveData(FeedModelState())
 
-    private val cached = repository.data.cachedIn(viewModelScope)
+    private val cached
+        get() = repository.data.cachedIn(viewModelScope)
 
-    //TODO in HW 02_arch
     val data: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest {
-            loadPosts()
             cached
         }
 
@@ -181,7 +180,6 @@ class PostViewModel @Inject constructor(
                 FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
         }
     }
-
 
     fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
 
