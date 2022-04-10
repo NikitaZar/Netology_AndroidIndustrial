@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.*
 import androidx.core.view.*
 import androidx.fragment.app.*
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -17,6 +19,8 @@ import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
 import javax.inject.Inject
+import androidx.paging.LoadState
+import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
@@ -83,29 +87,51 @@ class FeedFragment : Fragment() {
         )
 
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner) { data ->
-            val isNewPost = (adapter.itemCount < data.posts.size) && (adapter.itemCount > 0)
-            adapter.submitList(data.posts) {
-                if (isNewPost) {
+
+        lifecycleScope.launchWhenCreated {
+            viewModel.data.collectLatest(adapter::submitData)
+        }
+
+        lifecycleScope.launchWhenCreated {
+            adapter.loadStateFlow.collectLatest { state ->
+                binding.swipeRefresh.isRefreshing =
+                    state.refresh is LoadState.Loading ||
+                            state.prepend is LoadState.Loading ||
+                            state.append is LoadState.Loading
+
+                if (state.refresh is LoadState.Loading) {
                     binding.list.smoothScrollToPosition(0)
                 }
             }
+        }
 
-            binding.emptyText.isVisible = data.empty
+        //TODO check
+//        adapter.addLoadStateListener { loadState ->
+//            binding.emptyText.isVisible =
+//                (loadState.source.refresh is LoadState.NotLoading &&
+//                        loadState.append.endOfPaginationReached && adapter.itemCount < 1)
+//        }
 
-            viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
-                binding.progress.isVisible = dataState.loading
+        //TODO: show emptyText
+//        viewModel.data.asLiveData().observe(viewLifecycleOwner) { data ->
+//            val isNewPost = (adapter.itemCount < data.posts.size) && (adapter.itemCount > 0)
+//            adapter.submitList(data.posts) {
+//                if (isNewPost) {
+//                    binding.list.smoothScrollToPosition(0)
+//                }
+//            }
 
-                if (!dataState.loading) {
-                    binding.swipeRefresh.isRefreshing = false
-                }
+//            binding.emptyText.isVisible = data.empty
+//    }
 
-                if (dataState.error) {
-                    Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
-                        .setAction(R.string.retry_loading) {
-                            viewModel.retryActon(dataState.actionType, dataState.actionId)
-                        }.show()
-                }
+        viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
+            binding.progress.isVisible = dataState.loading
+
+            if (dataState.error) {
+                Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.retry_loading) {
+                        viewModel.retryActon(dataState.actionType, dataState.actionId)
+                    }.show()
             }
         }
 

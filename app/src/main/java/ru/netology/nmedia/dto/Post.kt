@@ -19,12 +19,12 @@ data class Post(
     val likedByMe: Boolean,
     @SerializedName("likes")
     val likes: Int = 0,
+    @SerializedName("ownedByMe")
+    val ownedByMe: Boolean = false,
     @Transient
     val isNotSent: Boolean = false,
     @Transient
     var isVisible: Boolean = false,
-    @Transient
-    val ownedByMe: Boolean = false,
     @SerializedName("attachment")
     val attachment: Attachment? = null,
 )

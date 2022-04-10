@@ -1,10 +1,11 @@
 package ru.netology.nmedia.repository
 
+import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.dto.*
 
 interface PostRepository {
-    val data: Flow<List<Post>>
+    val data: Flow<PagingData<Post>>
     fun getNewerCount(id: Long): Flow<Int>
     suspend fun likeById(id: Long)
     suspend fun dislikeById(id: Long)

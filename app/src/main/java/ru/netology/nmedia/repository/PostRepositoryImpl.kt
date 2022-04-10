@@ -1,5 +1,8 @@
 package ru.netology.nmedia.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -11,7 +14,6 @@ import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entity.PostEntity
-import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.enumeration.AttachmentType
 import ru.netology.nmedia.errors.ApiException
@@ -22,14 +24,21 @@ import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
+const val PAGE_SIZE = 5
+const val ENABLE_PLACE_HOLDERS = false
+
+
 @Singleton
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService: ApiService
 ) : PostRepository {
-    override val data = dao.getVisible()
-        .map(List<PostEntity>::toDto)
-        .flowOn(Dispatchers.Default)
+
+    override val data: Flow<PagingData<Post>> = Pager(
+        config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = ENABLE_PLACE_HOLDERS),
+        pagingSourceFactory = { PostPagingSource(apiService) },
+    ).flow
 
     override suspend fun getAll() {
         try {
@@ -149,7 +158,6 @@ class PostRepositoryImpl @Inject constructor(
     override suspend fun saveWithAttachment(post: Post, upload: MediaUpload, retry: Boolean) {
         try {
             val media = uploadMedia(upload)
-            // TODO: add support for other types
             val postWithAttachment = post.copy(attachment = Attachment(media.id, AttachmentType.IMAGE))
             save(postWithAttachment, retry)
         } catch (e: AppError) {
