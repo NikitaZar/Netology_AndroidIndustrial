@@ -2,6 +2,7 @@ package ru.netology.nmedia.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.core.view.*
 import androidx.fragment.app.*
@@ -104,25 +105,6 @@ class FeedFragment : Fragment() {
                 }
             }
         }
-
-        //TODO check
-//        adapter.addLoadStateListener { loadState ->
-//            binding.emptyText.isVisible =
-//                (loadState.source.refresh is LoadState.NotLoading &&
-//                        loadState.append.endOfPaginationReached && adapter.itemCount < 1)
-//        }
-
-        //TODO: show emptyText
-//        viewModel.data.asLiveData().observe(viewLifecycleOwner) { data ->
-//            val isNewPost = (adapter.itemCount < data.posts.size) && (adapter.itemCount > 0)
-//            adapter.submitList(data.posts) {
-//                if (isNewPost) {
-//                    binding.list.smoothScrollToPosition(0)
-//                }
-//            }
-
-//            binding.emptyText.isVisible = data.empty
-//    }
 
         viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
             binding.progress.isVisible = dataState.loading

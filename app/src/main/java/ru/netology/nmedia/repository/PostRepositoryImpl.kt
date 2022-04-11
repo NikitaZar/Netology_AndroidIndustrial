@@ -31,7 +31,7 @@ const val ENABLE_PLACE_HOLDERS = false
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService: ApiService,
-    private val mediator: PostRemoteMediator
+    mediator: PostRemoteMediator
 ) : PostRepository {
 
     @OptIn(ExperimentalPagingApi::class)
