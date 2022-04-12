@@ -128,11 +128,12 @@ class FeedFragment : Fragment() {
             viewModel.loadPosts()
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
-            if (count > 0) {
-                binding.fabNewer.show()
-            }
-        }
+        //TODO: show fabNewer
+//        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
+//            if (count > 0) {
+//                binding.fabNewer.show()
+//            }
+//        }
 
         binding.fabNewer.setOnClickListener {
             viewModel.asVisibleAll()

@@ -1,12 +1,13 @@
 package ru.netology.nmedia.repository
 
+import androidx.lifecycle.LiveData
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.dto.*
 
 interface PostRepository {
     val data: Flow<PagingData<Post>>
-    fun getNewerCount(id: Long): Flow<Int>
+    fun getNewerCount(): Flow<Int>
     suspend fun likeById(id: Long)
     suspend fun dislikeById(id: Long)
     suspend fun save(post: Post, retry: Boolean)
@@ -18,4 +19,7 @@ interface PostRepository {
     suspend fun updateUser(login: String, pass: String): AuthState
     suspend fun registerUser(login: String, pass: String, name: String): AuthState
     suspend fun registerWithPhoto(login: String, pass: String, name: String, upload: MediaUpload): AuthState
+    suspend fun getPostById(id: Long): LiveData<Post>
+    suspend fun getMaxId(): Long
+
 }

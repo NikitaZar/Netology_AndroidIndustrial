@@ -1,5 +1,6 @@
 package ru.netology.nmedia.dao
 
+import androidx.lifecycle.LiveData
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
@@ -28,4 +29,10 @@ interface PostDao {
 
     @Query("DELETE FROM PostEntity")
     suspend fun removeAll()
+
+    @Query("SELECT * FROM PostEntity WHERE id = :id")
+    fun getPostById(id: Long): LiveData<PostEntity>
+
+    @Query("SELECT * FROM PostEntity WHERE isVisible = 1 ORDER BY id DESC LIMIT 1")
+    fun getPostMaxId(): LiveData<PostEntity>
 }

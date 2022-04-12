@@ -1,5 +1,7 @@
 package ru.netology.nmedia.repository
 
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.map
 import androidx.paging.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -43,7 +45,6 @@ class PostRepositoryImpl @Inject constructor(
         pagingData.map(PostEntity::toDto)
     }
 
-
     override suspend fun getAll() {
         try {
             val response = apiService.getAll()
@@ -59,10 +60,10 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getNewerCount(id: Long): Flow<Int> = flow {
+    override fun getNewerCount(): Flow<Int> = flow {
         while (true) {
             delay(10_000L)
-            val response = apiService.getNewer(id)
+            val response = apiService.getNewer(getMaxId())
             if (!response.isSuccessful) {
                 throw ApiException(response.code(), response.message())
             }
@@ -212,6 +213,12 @@ class PostRepositoryImpl @Inject constructor(
         checkResponse(response)
         return response.body() ?: throw ApiException(response.code(), response.message())
     }
+
+    //TODO
+    override suspend fun getPostById(id: Long): LiveData<Post> = dao.getPostById(id).map { it.toDto() }
+
+    //TODO
+    override suspend fun getMaxId() = dao.getPostMaxId().value?.toDto()?.id ?: -1
 }
 
 private fun checkResponse(response: Response<out Any>) {
