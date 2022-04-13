@@ -1,13 +1,10 @@
 package ru.netology.nmedia.dao
 
-import androidx.lifecycle.LiveData
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kotlinx.coroutines.flow.Flow
-import retrofit2.http.POST
 import ru.netology.nmedia.entity.PostEntity
 
 @Dao
@@ -31,8 +28,8 @@ interface PostDao {
     suspend fun removeAll()
 
     @Query("SELECT * FROM PostEntity WHERE id = :id")
-    fun getPostById(id: Long): LiveData<PostEntity>
+    suspend fun getPostById(id: Long): PostEntity?
 
     @Query("SELECT * FROM PostEntity WHERE isVisible = 1 ORDER BY id DESC LIMIT 1")
-    fun getPostMaxId(): LiveData<PostEntity>
+    suspend fun getPostMaxId(): PostEntity?
 }

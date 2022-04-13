@@ -71,9 +71,6 @@ class PostViewHolder(
             }
 
             menu.isVisible = post.ownedByMe
-            //TODO ownedByMe
-            Log.i("ownedByMe", post.ownedByMe.toString())
-            Log.i("ownedByMeId", post.id.toString())
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.options_post)

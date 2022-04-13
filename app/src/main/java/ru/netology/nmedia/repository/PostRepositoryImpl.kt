@@ -1,7 +1,6 @@
 package ru.netology.nmedia.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import android.util.Log
 import androidx.paging.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -16,10 +15,7 @@ import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.enumeration.AttachmentType
-import ru.netology.nmedia.errors.ApiException
-import ru.netology.nmedia.errors.AppError
-import ru.netology.nmedia.errors.NetworkException
-import ru.netology.nmedia.errors.UnknownException
+import ru.netology.nmedia.errors.*
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -214,11 +210,9 @@ class PostRepositoryImpl @Inject constructor(
         return response.body() ?: throw ApiException(response.code(), response.message())
     }
 
-    //TODO
-    override suspend fun getPostById(id: Long): LiveData<Post> = dao.getPostById(id).map { it.toDto() }
+    override suspend fun getPostById(id: Long) = dao.getPostById(id)?.toDto() ?: throw DbError
 
-    //TODO
-    override suspend fun getMaxId() = dao.getPostMaxId().value?.toDto()?.id ?: -1
+    override suspend fun getMaxId() = dao.getPostMaxId()?.toDto()?.id ?: throw DbError
 }
 
 private fun checkResponse(response: Response<out Any>) {

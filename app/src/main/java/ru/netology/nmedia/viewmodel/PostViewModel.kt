@@ -73,12 +73,9 @@ class PostViewModel @Inject constructor(
         loadPosts()
     }
 
-    //TODO in 03_arch with RemoteMediator
-//    val newerCount: LiveData<Int> = data.switchMap {
-//        repository.getNewerCount()
-//            .catch { e -> e.printStackTrace() }
-//            .asLiveData(Dispatchers.Default)
-//    }
+    val newerCount: LiveData<Int> = repository.getNewerCount()
+        .catch { e -> e.printStackTrace() }
+        .asLiveData(Dispatchers.Default)
 
     fun loadPosts() = viewModelScope.launch {
         try {
@@ -145,13 +142,8 @@ class PostViewModel @Inject constructor(
 
     fun likeById(id: Long) = viewModelScope.launch {
         try {
-
-            //TODO
-            Log.i("likeById", repository.getPostById(id).value?.isNotSent.toString())
-            Log.i("likeById", id.toString())
-            Log.i("likeById", repository.getMaxId().toString())
-
-            val isNotSent = repository.getPostById(id).value?.isNotSent ?: return@launch
+            val isNotSent = repository.getPostById(id).isNotSent
+            Log.i("isNotSent", isNotSent.toString())
             if (isNotSent) {
                 return@launch
             }
@@ -164,7 +156,7 @@ class PostViewModel @Inject constructor(
 
     fun dislikeById(id: Long) = viewModelScope.launch {
         try {
-            val isNotSent = repository.getPostById(id).value?.isNotSent ?: return@launch
+            val isNotSent = repository.getPostById(id).isNotSent
             if (isNotSent) {
                 return@launch
             }
