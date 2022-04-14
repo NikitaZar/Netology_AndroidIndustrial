@@ -39,4 +39,5 @@
     <string name="dialog_accept">Yes</string>
     <string name="dialog_decline">No</string>
     <string name="remove">Remove</string>
+    <string name="some_text">Some text</string>
 </resources>

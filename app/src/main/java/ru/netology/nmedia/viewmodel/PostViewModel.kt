@@ -6,23 +6,26 @@ import androidx.core.net.toFile
 import androidx.lifecycle.*
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
+import androidx.paging.insertSeparators
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.TextItemSeparator
+import ru.netology.nmedia.hiltModules.CurrentTime
 import ru.netology.nmedia.model.ActionType
-import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
+import kotlin.random.Random
 
 private val empty = Post(
     id = 0,
@@ -39,7 +42,8 @@ private val empty = Post(
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
-    private val auth: AppAuth
+    private val auth: AppAuth,
+    private val currentTime: CurrentTime
 ) : ViewModel() {
 
     private val _dataState = MutableLiveData(FeedModelState())
@@ -47,9 +51,23 @@ class PostViewModel @Inject constructor(
     private val cached
         get() = repository.data.cachedIn(viewModelScope)
 
-    val data: Flow<PagingData<Post>> = auth.authStateFlow
+    val data: Flow<PagingData<FeedItem>> = auth.authStateFlow
         .flatMapLatest {
-            cached
+            cached.map { pagingData ->
+
+                pagingData.insertSeparators(
+                    generator = { before, after ->
+                        val afterPublished = after?.published?.toLong() ?: -1L
+                        val hourDiff = currentTime.differentHourFromCurrent(afterPublished)
+                        Log.i("published - hourDiff", hourDiff.toString())
+                        val itemId = before?.id ?: Random.nextLong()
+                        getDaySeparatorText(hourDiff)?.let { separatorText ->
+                            Log.i("published - separator", separatorText)
+                            TextItemSeparator(itemId, separatorText)
+                        }
+                    }
+                )
+            }
         }
 
     val dataState: LiveData<FeedModelState>
@@ -214,3 +232,11 @@ class PostViewModel @Inject constructor(
         }
     }
 }
+
+fun getDaySeparatorText(hourDiff: Long): String? =
+    when {
+        hourDiff in 0..23L -> "Сегодня"
+        hourDiff in 24L..47L -> "Вчера"
+        hourDiff >= 48L -> "Давно"
+        else -> null
+    }

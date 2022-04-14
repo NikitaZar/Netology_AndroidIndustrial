@@ -1,6 +1,5 @@
 package ru.netology.nmedia.adapter
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.PopupMenu
@@ -12,9 +11,15 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.databinding.CardTextItemSeparatorBinding
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.TextItemSeparator
 import ru.netology.nmedia.view.load
 import ru.netology.nmedia.view.loadCircleCrop
+
+const val TYPE_POST = 0
+const val TYPE_TEXT_SEPARATOR = 1
 
 interface OnInteractionListener {
     fun onLike(post: Post)
@@ -26,18 +31,49 @@ interface OnInteractionListener {
     fun onAuth()
 }
 
-class PostsAdapter(
+class FeedAdapter(
     private val onInteractionListener: OnInteractionListener,
     private val appAuth: AppAuth
-) : PagingDataAdapter<Post, PostViewHolder>(PostDiffCallback()) {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        val binding = CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PostViewHolder(binding, onInteractionListener, appAuth)
+) : PagingDataAdapter<FeedItem, RecyclerView.ViewHolder>(FeedDiffCallback()) {
+
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is Post -> TYPE_POST
+            is TextItemSeparator -> TYPE_TEXT_SEPARATOR
+            else -> throw IllegalArgumentException("unknown item type")
+        }
     }
 
-    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        val post = getItem(position) ?: return
-        holder.bind(post)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
+        when (viewType) {
+            TYPE_POST -> PostViewHolder(
+                CardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+                onInteractionListener,
+                appAuth
+            )
+            TYPE_TEXT_SEPARATOR -> TextItemViewHolder(
+                CardTextItemSeparatorBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+                onInteractionListener,
+            )
+            else -> throw IllegalArgumentException("unknown item type")
+        }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        getItem(position)?.let { feedItem ->
+            when (feedItem) {
+                is Post -> (holder as PostViewHolder).bind(feedItem)
+                is TextItemSeparator -> (holder as TextItemViewHolder).bind(feedItem)
+            }
+        }
+    }
+}
+
+class TextItemViewHolder(
+    private val binding: CardTextItemSeparatorBinding,
+    private val onInteractionListener: OnInteractionListener,
+) : RecyclerView.ViewHolder(binding.root) {
+    fun bind(textItemSeparator: TextItemSeparator) {
+        binding.text.text = textItemSeparator.text
     }
 }
 
@@ -111,12 +147,16 @@ class PostViewHolder(
     }
 }
 
-class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
-    override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
+class FeedDiffCallback : DiffUtil.ItemCallback<FeedItem>() {
+    override fun areItemsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
+        if (oldItem::class.java != newItem::class.java) {
+            return false
+        }
+
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
+    override fun areContentsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
         return oldItem == newItem
     }
 }
