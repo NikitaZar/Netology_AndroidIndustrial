@@ -1,5 +1,7 @@
 package ru.netology.nmedia.viewmodel
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toFile
@@ -7,16 +9,20 @@ import androidx.lifecycle.*
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.dto.TextItemSeparator
+import ru.netology.nmedia.enumeration.SeparatorTimeType
 import ru.netology.nmedia.hiltModules.CurrentTime
 import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModelState
@@ -24,6 +30,7 @@ import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
+import java.text.SimpleDateFormat
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -41,6 +48,7 @@ private val empty = Post(
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PostViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: PostRepository,
     private val auth: AppAuth,
     private val currentTime: CurrentTime
@@ -51,22 +59,38 @@ class PostViewModel @Inject constructor(
     private val cached
         get() = repository.data.cachedIn(viewModelScope)
 
+    @SuppressLint("SimpleDateFormat")
     val data: Flow<PagingData<FeedItem>> = auth.authStateFlow
         .flatMapLatest {
             cached.map { pagingData ->
-
                 pagingData.insertSeparators(
                     generator = { before, after ->
-                        val afterPublished = after?.published?.toLong() ?: -1L
-                        val hourDiff = currentTime.differentHourFromCurrent(afterPublished)
-                        Log.i("published - hourDiff", hourDiff.toString())
-                        val itemId = before?.id ?: Random.nextLong()
-                        getDaySeparatorText(hourDiff)?.let { separatorText ->
-                            Log.i("published - separator", separatorText)
-                            TextItemSeparator(itemId, separatorText)
+                        val beforeTime = currentTime.getDaySeparatorType(before?.published?.toLong())
+                        val afterTime = currentTime.getDaySeparatorType(after?.published?.toLong())
+
+                        val text = when {
+                            beforeTime == SeparatorTimeType.NULL && afterTime == SeparatorTimeType.TODAY ->
+                                context.getString(R.string.today)
+                            beforeTime == SeparatorTimeType.TODAY && afterTime == SeparatorTimeType.YESTERDAY ->
+                                context.getString(R.string.yesterday)
+                            beforeTime == SeparatorTimeType.YESTERDAY && afterTime == SeparatorTimeType.MORE_OLD ->
+                                context.getString(R.string.more_old)
+                            else -> null
                         }
+                        text?.let { TextItemSeparator(Random.nextLong(), it) } ?: run { null }
                     }
                 )
+                    .map { feedItem ->
+                        when (feedItem) {
+                            is Post -> {
+                                feedItem.copy(
+                                    published = SimpleDateFormat("dd.MM.yy HH:mm:ss")
+                                        .format(feedItem.published.toLong())
+                                )
+                            }
+                            is TextItemSeparator -> feedItem
+                        }
+                    }
             }
         }
 
@@ -233,10 +257,3 @@ class PostViewModel @Inject constructor(
     }
 }
 
-fun getDaySeparatorText(hourDiff: Long): String? =
-    when {
-        hourDiff in 0..23L -> "Сегодня"
-        hourDiff in 24L..47L -> "Вчера"
-        hourDiff >= 48L -> "Давно"
-        else -> null
-    }

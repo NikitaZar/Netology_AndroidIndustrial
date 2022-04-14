@@ -1,11 +1,6 @@
 package ru.netology.nmedia.hiltModules
 
-import android.util.Log
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
-import java.text.SimpleDateFormat
+import ru.netology.nmedia.enumeration.SeparatorTimeType
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,21 +12,23 @@ const val MS_PER_SEC = 1000
 
 @Singleton
 class CurrentTime @Inject constructor() {
+
     val currentTime: Long
         get() = Calendar.getInstance().time.time
 
-    fun differentHourFromCurrent(time: Long): Long {
-        SimpleDateFormat("dd.MM.yy HH:mm:ss.SSS").let {
-            it.timeZone = TimeZone.getTimeZone("UTC")
-            Log.i("published - time", it.format(time).toString())
-        }
-        SimpleDateFormat("dd.MM.yy HH:mm:ss.SSS").let {
-            it.timeZone = TimeZone.getTimeZone("UTC")
-            Log.i("published - currentTime", it.format(currentTime).toString())
-        }
+    fun differentHourFromCurrent(time: Long): Long =
+        (currentTime - time * MS_PER_SEC) / (MINUTE_PER_HOUR * SEC_PER_MINUTE * MS_PER_SEC)
 
-        Log.i("published - time", time.toString())
-        Log.i("published - currentTime", currentTime.toString())
-        return (currentTime - time) / (MINUTE_PER_HOUR * SEC_PER_MINUTE * MS_PER_SEC)
+    fun getDaySeparatorType(time: Long?): SeparatorTimeType {
+        if (time == null) {
+            return SeparatorTimeType.NULL
+        }
+        val dif = differentHourFromCurrent(time)
+        return when {
+            dif in 0..23L -> SeparatorTimeType.TODAY
+            dif in 24L..47L -> SeparatorTimeType.YESTERDAY
+            dif >= 48L -> SeparatorTimeType.MORE_OLD
+            else -> SeparatorTimeType.NULL
+        }
     }
 }
