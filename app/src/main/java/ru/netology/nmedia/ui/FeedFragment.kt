@@ -22,6 +22,7 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 import javax.inject.Inject
 import androidx.paging.LoadState
 import kotlinx.coroutines.flow.collectLatest
+import ru.netology.nmedia.adapter.FeedLoadStateAdapter
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
@@ -87,7 +88,9 @@ class FeedFragment : Fragment() {
             appAuth
         )
 
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateHeader(
+            header = FeedLoadStateAdapter { viewModel.loadPosts() }
+        )
 
         lifecycleScope.launchWhenCreated {
             viewModel.data.collectLatest(adapter::submitData)
@@ -95,11 +98,6 @@ class FeedFragment : Fragment() {
 
         lifecycleScope.launchWhenCreated {
             adapter.loadStateFlow.collectLatest { state ->
-                binding.swipeRefresh.isRefreshing =
-                    state.refresh is LoadState.Loading ||
-                            state.prepend is LoadState.Loading ||
-                            state.append is LoadState.Loading
-
                 if (state.refresh is LoadState.Loading) {
                     binding.list.smoothScrollToPosition(0)
                 }
@@ -122,10 +120,6 @@ class FeedFragment : Fragment() {
                 false -> findNavController().navigate(R.id.action_feedFragment_to_authFragment)
                 true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
             }
-        }
-
-        binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
         }
 
         viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
