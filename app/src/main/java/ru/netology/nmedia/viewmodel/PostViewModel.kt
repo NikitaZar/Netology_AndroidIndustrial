@@ -4,12 +4,13 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.net.toFile
 import androidx.lifecycle.*
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.MediaUpload
@@ -18,7 +19,7 @@ import ru.netology.nmedia.model.ActionType
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
-import ru.netology.nmedia.repository.*
+import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
 import javax.inject.Inject
@@ -43,16 +44,13 @@ class PostViewModel @Inject constructor(
 
     private val _dataState = MutableLiveData(FeedModelState())
 
-    val data: LiveData<FeedModel> = auth
-        .authStateFlow
-        .flatMapLatest { (myId, _) ->
-            repository.data
-                .map { posts ->
-                    FeedModel(
-                        posts.map { it.copy(ownedByMe = it.authorId == myId) }
-                    )
-                }
-        }.asLiveData(Dispatchers.Default)
+    private val cached
+        get() = repository.data.cachedIn(viewModelScope)
+
+    val data: Flow<PagingData<Post>> = auth.authStateFlow
+        .flatMapLatest {
+            cached
+        }
 
     val dataState: LiveData<FeedModelState>
         get() = _dataState
@@ -75,6 +73,14 @@ class PostViewModel @Inject constructor(
         loadPosts()
     }
 
+    //TODO in 03_arch with RemoteMediator
+    val newerCount: LiveData<Long> = MutableLiveData(empty.id)  //just Mock
+    //        data.switchMap {
+////        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
+////            .catch { e -> e.printStackTrace() }
+////            .asLiveData(Dispatchers.Default)
+//    }
+
     fun loadPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(loading = true)
@@ -82,6 +88,17 @@ class PostViewModel @Inject constructor(
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = true, actionType = ActionType.LOAD)
+        }
+    }
+
+    fun retryActon(actionType: ActionType, id: Long) {
+        when (actionType) {
+            ActionType.LOAD -> loadPosts()
+            ActionType.DISLIKE -> dislikeById(id)
+            ActionType.LIKE -> likeById(id)
+            ActionType.REMOVE -> removeById(id)
+            ActionType.SAVE -> save()
+            else -> return
         }
     }
 
@@ -128,29 +145,31 @@ class PostViewModel @Inject constructor(
     }
 
     fun likeById(id: Long) = viewModelScope.launch {
-        try {
-            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
-            if (isNotSent) {
-                return@launch
-            }
-            repository.likeById(id)
-        } catch (e: Exception) {
-            _dataState.value =
-                FeedModelState(error = true, actionType = ActionType.LIKE, actionId = id)
-        }
+        //TODO in 03_arch with RemoteMediator
+//        try {
+//            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
+//            if (isNotSent) {
+//                return@launch
+//            }
+//            repository.likeById(id)
+//        } catch (e: Exception) {
+//            _dataState.value =
+//                FeedModelState(error = true, actionType = ActionType.LIKE, actionId = id)
+//        }
     }
 
     fun dislikeById(id: Long) = viewModelScope.launch {
-        try {
-            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
-            if (isNotSent) {
-                return@launch
-            }
-            repository.dislikeById(id)
-        } catch (e: Exception) {
-            _dataState.value =
-                FeedModelState(error = true, actionType = ActionType.DISLIKE, actionId = id)
-        }
+        //TODO in 03_arch with RemoteMediator
+//        try {
+//            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
+//            if (isNotSent) {
+//                return@launch
+//            }
+//            repository.dislikeById(id)
+//        } catch (e: Exception) {
+//            _dataState.value =
+//                FeedModelState(error = true, actionType = ActionType.DISLIKE, actionId = id)
+//        }
     }
 
     fun removeById(id: Long) = viewModelScope.launch {
@@ -160,23 +179,6 @@ class PostViewModel @Inject constructor(
             _dataState.value =
                 FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
         }
-    }
-
-    fun retryActon(actionType: ActionType, id: Long) {
-        when (actionType) {
-            ActionType.LOAD -> loadPosts()
-            ActionType.DISLIKE -> dislikeById(id)
-            ActionType.LIKE -> likeById(id)
-            ActionType.REMOVE -> removeById(id)
-            ActionType.SAVE -> save()
-            else -> return
-        }
-    }
-
-    val newerCount: LiveData<Int> = data.switchMap {
-        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
-            .catch { e -> e.printStackTrace() }
-            .asLiveData(Dispatchers.Default)
     }
 
     fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
