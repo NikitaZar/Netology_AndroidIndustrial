@@ -1,12 +1,14 @@
 package ru.netology.nmedia.repository
 
-import androidx.paging.*
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.LoadType
+import androidx.paging.PagingState
+import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dao.PostRemoteKeyDao
 import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.PostRemoteKeyEntity
 import ru.netology.nmedia.errors.ApiException
@@ -45,27 +47,31 @@ class PostRemoteMediator @Inject constructor(
             db.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        postRemoteKeyDao.insert(
-                            listOf(
+                        when (db.postRemoteKeyDao().isEmpty()) {
+                            false -> postRemoteKeyDao.insert(
                                 PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.BEFORE, body.last().id),
-                                PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.AFTER, body.first().id),
                             )
-                        )
+                            true -> postRemoteKeyDao.insert(
+                                listOf(
+                                    PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.BEFORE, body.last().id),
+                                    PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.AFTER, body.first().id),
+                                )
+                            )
+                        }
                     }
-                    LoadType.PREPEND -> {
+                    LoadType.APPEND -> {
                         postRemoteKeyDao.insert(
                             PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.BEFORE, body.last().id),
                         )
                     }
-                    LoadType.APPEND -> {
+                    LoadType.PREPEND -> {
                         postRemoteKeyDao.insert(
                             PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.AFTER, body.first().id),
                         )
                     }
                 }
-                postDao.insert(body.map(PostEntity::fromDto))
             }
-
+            postDao.insert(body.map(PostEntity::fromDto))
             return MediatorResult.Success(true)
         } catch (e: Exception) {
             return MediatorResult.Error(e)

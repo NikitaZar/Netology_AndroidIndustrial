@@ -70,12 +70,12 @@ class PostViewModel @Inject constructor(
         get() = _avatar
 
     init {
-        loadPosts()
+        //loadPosts()
     }
 
-    val newerCount: LiveData<Int> = repository.getNewerCount()
-        .catch { e -> e.printStackTrace() }
-        .asLiveData(Dispatchers.Default)
+//    val newerCount: LiveData<Int> = repository.getNewerCount()
+//        .catch { e -> e.printStackTrace() }
+//        .asLiveData(Dispatchers.Default)
 
     fun loadPosts() = viewModelScope.launch {
         try {
@@ -175,8 +175,6 @@ class PostViewModel @Inject constructor(
                 FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
         }
     }
-
-    fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
 
     fun changePhoto(uri: Uri?, file: File?) {
         _photo.value = PhotoModel(uri, file)

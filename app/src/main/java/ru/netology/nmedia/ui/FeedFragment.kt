@@ -8,6 +8,7 @@ import androidx.core.view.*
 import androidx.fragment.app.*
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,6 +23,7 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 import javax.inject.Inject
 import androidx.paging.LoadState
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
@@ -125,22 +127,17 @@ class FeedFragment : Fragment() {
         }
 
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
-        }
-
-        viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
-            Log.i("newerCount", newerCount.toString())
-            if (newerCount > 0) {
-                binding.fabNewer.show()
+            lifecycleScope.launch {
+                viewModel.data.collectLatest(adapter::submitData)
             }
         }
 
-        binding.fabNewer.setOnClickListener {
-            viewModel.loadPosts()
-            viewModel.asVisibleAll()
-            binding.list.smoothScrollToPosition(0)
-            binding.fabNewer.hide()
-        }
+//        viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
+//            Log.i("newerCount", newerCount.toString())
+//            if (newerCount > 20) {
+//                binding.fabNewer.show()
+//            }
+//        }
 
         return binding.root
     }
