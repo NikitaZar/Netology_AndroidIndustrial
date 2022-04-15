@@ -100,8 +100,9 @@ class NewPostFragment : Fragment() {
             AndroidUtils.hideKeyboard(requireView())
             findNavController().navigateUp()
         }
+
         postVewModel.postCreated.observe(viewLifecycleOwner) {
-            postVewModel.loadPosts()
+            postVewModel.loadPosts() //TODO set refresh from Pager
         }
 
         postVewModel.dataState.observe(viewLifecycleOwner) { state ->

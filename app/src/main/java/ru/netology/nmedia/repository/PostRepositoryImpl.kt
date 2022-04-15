@@ -55,20 +55,20 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-//    override fun getNewerCount(): Flow<Int> = flow {
-//        while (true) {
-//            delay(10_000L)
-//            val response = apiService.getNewer(getMaxId())
-//            if (!response.isSuccessful) {
-//                throw ApiException(response.code(), response.message())
-//            }
-//
-//            val body = response.body() ?: throw ApiException(response.code(), response.message())
-//            dao.insert(body.toEntity())
-//            emit(body.size)
-//        }
-//    }.catch { e -> throw AppError.from(e) }
-//        .flowOn(Dispatchers.Default)
+    override fun getNewerCount(): Flow<Int> = flow {
+        while (true) {
+            delay(10_000L)
+            val response = apiService.getNewer(getMaxId())
+            if (!response.isSuccessful) {
+                throw ApiException(response.code(), response.message())
+            }
+
+            val body = response.body() ?: throw ApiException(response.code(), response.message())
+            dao.insert(body.toEntity())
+            emit(body.size)
+        }
+    }.catch { e -> throw AppError.from(e) }
+        .flowOn(Dispatchers.Default)
 
     override suspend fun likeById(id: Long) {
         try {

@@ -69,13 +69,9 @@ class PostViewModel @Inject constructor(
     val avatar: LiveData<PhotoModel>
         get() = _avatar
 
-    init {
-        //loadPosts()
-    }
-
-//    val newerCount: LiveData<Int> = repository.getNewerCount()
-//        .catch { e -> e.printStackTrace() }
-//        .asLiveData(Dispatchers.Default)
+    val newerCount: LiveData<Int> = repository.getNewerCount()
+        .catch { e -> e.printStackTrace() }
+        .asLiveData(Dispatchers.Default)
 
     fun loadPosts() = viewModelScope.launch {
         try {

@@ -48,14 +48,14 @@ class PostRemoteMediator @Inject constructor(
                 when (loadType) {
                     LoadType.REFRESH -> {
                         when (db.postRemoteKeyDao().isEmpty()) {
-                            false -> postRemoteKeyDao.insert(
-                                PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.BEFORE, body.last().id),
-                            )
                             true -> postRemoteKeyDao.insert(
                                 listOf(
                                     PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.BEFORE, body.last().id),
                                     PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.AFTER, body.first().id),
                                 )
+                            )
+                            false -> postRemoteKeyDao.insert(
+                                PostRemoteKeyEntity(PostRemoteKeyEntity.KeyType.BEFORE, body.last().id),
                             )
                         }
                     }

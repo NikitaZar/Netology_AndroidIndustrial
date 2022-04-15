@@ -3,27 +3,27 @@ package ru.netology.nmedia.ui
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.*
-import androidx.core.view.*
-import androidx.fragment.app.*
-import androidx.lifecycle.asLiveData
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
-import ru.netology.nmedia.ui.FullscreenAttachmentFragment.Companion.url
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.ui.FullscreenAttachmentFragment.Companion.url
 import ru.netology.nmedia.viewmodel.PostViewModel
 import javax.inject.Inject
-import androidx.paging.LoadState
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
@@ -127,17 +127,20 @@ class FeedFragment : Fragment() {
         }
 
         binding.swipeRefresh.setOnRefreshListener {
-            lifecycleScope.launch {
-                viewModel.data.collectLatest(adapter::submitData)
+            adapter.refresh()
+        }
+
+        viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
+            Log.i("newerCount", newerCount.toString())
+            if (newerCount > 20) {
+                binding.fabNewer.show()
             }
         }
 
-//        viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
-//            Log.i("newerCount", newerCount.toString())
-//            if (newerCount > 20) {
-//                binding.fabNewer.show()
-//            }
-//        }
+        binding.fabNewer.setOnClickListener {
+            binding.list.smoothScrollToPosition(0)
+            binding.fabNewer.hide()
+        }
 
         return binding.root
     }
