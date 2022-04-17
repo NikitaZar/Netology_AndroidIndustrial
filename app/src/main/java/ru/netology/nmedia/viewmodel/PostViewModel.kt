@@ -85,7 +85,7 @@ class PostViewModel @Inject constructor(
                             is Post -> {
                                 feedItem.copy(
                                     published = SimpleDateFormat("dd.MM.yy HH:mm:ss")
-                                        .format(feedItem.published.toLong())
+                                        .format(feedItem.published.toLong() * 1000L)
                                 )
                             }
                             is TextItemSeparator -> feedItem
@@ -111,27 +111,13 @@ class PostViewModel @Inject constructor(
     val avatar: LiveData<PhotoModel>
         get() = _avatar
 
-    init {
-        loadPosts()
-    }
-
     val newerCount: LiveData<Int> = repository.getNewerCount()
         .catch { e -> e.printStackTrace() }
         .asLiveData(Dispatchers.Default)
 
-    fun loadPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(loading = true)
-            repository.getAll()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.LOAD)
-        }
-    }
-
-    fun retryActon(actionType: ActionType, id: Long) {
+    fun retryActon(actionType: ActionType, id: Long, load: () -> Unit) {
         when (actionType) {
-            ActionType.LOAD -> loadPosts()
+            ActionType.LOAD -> load
             ActionType.DISLIKE -> dislikeById(id)
             ActionType.LIKE -> likeById(id)
             ActionType.REMOVE -> removeById(id)
@@ -179,7 +165,7 @@ class PostViewModel @Inject constructor(
         if (edited.value?.content == text) {
             return
         }
-        edited.value = edited.value?.copy(content = text)
+        edited.value = edited.value?.copy(content = text, published = currentTime.currentTime.toString())
     }
 
     fun likeById(id: Long) = viewModelScope.launch {
@@ -217,8 +203,6 @@ class PostViewModel @Inject constructor(
                 FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
         }
     }
-
-    fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
 
     fun changePhoto(uri: Uri?, file: File?) {
         _photo.value = PhotoModel(uri, file)

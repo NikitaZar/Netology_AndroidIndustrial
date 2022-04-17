@@ -90,7 +90,6 @@ class PostViewHolder(
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"
-            isSent.isChecked = !post.isNotSent
             attachment.isVisible = false
 
             val avatarUrl = "${BuildConfig.BASE_URL}avatars/${post.authorAvatar}"

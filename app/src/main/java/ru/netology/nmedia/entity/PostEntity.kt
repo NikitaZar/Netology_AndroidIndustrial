@@ -17,7 +17,6 @@ data class PostEntity(
     val likedByMe: Boolean,
     val likes: Int = 0,
     val isNotSent: Boolean = false,
-    var isVisible: Boolean,
     var ownedByMe: Boolean,
     @Embedded
     var attachment: AttachmentEmbeddable?,
@@ -32,7 +31,6 @@ data class PostEntity(
         likes,
         ownedByMe,
         isNotSent,
-        isVisible,
         attachment?.toDto())
 
     companion object {
@@ -47,7 +45,6 @@ data class PostEntity(
                 dto.likedByMe,
                 dto.likes,
                 dto.isNotSent,
-                dto.isVisible,
                 dto.ownedByMe,
                 AttachmentEmbeddable.fromDto(dto.attachment)
             )

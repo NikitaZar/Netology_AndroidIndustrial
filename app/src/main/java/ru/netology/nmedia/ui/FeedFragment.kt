@@ -2,11 +2,13 @@ package ru.netology.nmedia.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -89,8 +91,8 @@ class FeedFragment : Fragment() {
             appAuth
         )
 
-        binding.list.adapter = adapter.withLoadStateHeader(
-            header = FeedLoadStateAdapter { viewModel.loadPosts() }
+        binding.list.adapter = adapter.withLoadStateFooter(
+            footer = FeedLoadStateAdapter { adapter.retry() }
         )
 
         lifecycleScope.launchWhenCreated {
@@ -111,7 +113,7 @@ class FeedFragment : Fragment() {
             if (dataState.error) {
                 Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
                     .setAction(R.string.retry_loading) {
-                        viewModel.retryActon(dataState.actionType, dataState.actionId)
+                        viewModel.retryActon(dataState.actionType, dataState.actionId) { adapter.refresh() }
                     }.show()
             }
         }
@@ -123,15 +125,27 @@ class FeedFragment : Fragment() {
             }
         }
 
+        setFragmentResultListener("reqUpdate") { _, bundle ->
+            val reqUpdateNew = bundle.getBoolean("reqUpdateNew")
+            if (reqUpdateNew) {
+                adapter.refresh()
+            }
+        }
+
+        binding.swipeRefresh.setOnRefreshListener {
+            adapter.refresh()
+            binding.swipeRefresh.isRefreshing = false
+        }
+
         viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
+            Log.i("newerCount", newerCount.toString())
             if (newerCount > 20) {
                 binding.fabNewer.show()
             }
         }
 
         binding.fabNewer.setOnClickListener {
-            viewModel.loadPosts()
-            viewModel.asVisibleAll()
+            adapter.refresh()
             binding.list.smoothScrollToPosition(0)
             binding.fabNewer.hide()
         }

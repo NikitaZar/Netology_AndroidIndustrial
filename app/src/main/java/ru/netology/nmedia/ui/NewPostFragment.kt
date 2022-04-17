@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toFile
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
@@ -101,14 +103,15 @@ class NewPostFragment : Fragment() {
             findNavController().navigateUp()
         }
         postVewModel.postCreated.observe(viewLifecycleOwner) {
-            postVewModel.loadPosts()
+            val reqUpdateNew = true
+            setFragmentResult("reqUpdate", bundleOf("reqUpdateNew" to reqUpdateNew))
         }
 
         postVewModel.dataState.observe(viewLifecycleOwner) { state ->
             if (state.error) {
                 Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
                     .setAction(R.string.retry_loading) {
-                        postVewModel.retryActon(state.actionType, state.actionId)
+                        postVewModel.retryActon(state.actionType, state.actionId) { return@retryActon }
                     }.show()
             }
         }

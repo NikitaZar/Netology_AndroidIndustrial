@@ -36,24 +36,9 @@ class PostRepositoryImpl @Inject constructor(
     override val data: Flow<PagingData<Post>> = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = ENABLE_PLACE_HOLDERS),
         remoteMediator = mediator,
-        pagingSourceFactory = { dao.getVisible() },
+        pagingSourceFactory = { dao.getAll() },
     ).flow.map { pagingData ->
         pagingData.map(PostEntity::toDto)
-    }
-
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAll()
-            checkResponse(response)
-            val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(body.toEntity().onEach { it.isVisible = true })
-        } catch (e: ApiException) {
-            throw e
-        } catch (e: IOException) {
-            throw NetworkException
-        } catch (e: Exception) {
-            throw UnknownException
-        }
     }
 
     override fun getNewerCount(): Flow<Int> = flow {
@@ -76,7 +61,7 @@ class PostRepositoryImpl @Inject constructor(
             val response = apiService.likeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body).also { it.isVisible = true })
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
@@ -91,7 +76,7 @@ class PostRepositoryImpl @Inject constructor(
             val response = apiService.dislikeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body).also { it.isVisible = true })
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
@@ -105,12 +90,12 @@ class PostRepositoryImpl @Inject constructor(
         try {
             var newId = 0L
             if (!retry) {
-                newId = dao.insert(PostEntity.fromDto(post.copy(isNotSent = true, isVisible = true)))
+                newId = dao.insert(PostEntity.fromDto(post.copy(isNotSent = true)))
             }
             val response = apiService.save(post.copy(id = 0))
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body).also { it.isVisible = true })
+            dao.insert(PostEntity.fromDto(body))
 
             if (!retry) {
                 dao.removeById(newId)
@@ -137,8 +122,6 @@ class PostRepositoryImpl @Inject constructor(
             throw UnknownException
         }
     }
-
-    override suspend fun asVisibleAll() = dao.asVisibleAll()
 
     override suspend fun uploadMedia(upload: MediaUpload): Media {
         try {
