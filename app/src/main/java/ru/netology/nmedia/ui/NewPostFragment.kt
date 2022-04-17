@@ -104,7 +104,6 @@ class NewPostFragment : Fragment() {
         }
 
         postVewModel.postCreated.observe(viewLifecycleOwner) {
-            //postVewModel.loadPosts() //TODO set refresh from Pager
             val reqUpdateNew = true
             setFragmentResult("reqUpdate", bundleOf("reqUpdateNew" to reqUpdateNew))
         }

@@ -73,6 +73,7 @@ class PostViewModel @Inject constructor(
         .catch { e -> e.printStackTrace() }
         .asLiveData(Dispatchers.Default)
 
+    //TODO remove next time
     fun loadPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(loading = true)
