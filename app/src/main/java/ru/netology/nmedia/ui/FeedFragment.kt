@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -123,6 +124,13 @@ class FeedFragment : Fragment() {
             when (appAuth.authStateFlow.value.id != 0L) {
                 false -> findNavController().navigate(R.id.action_feedFragment_to_authFragment)
                 true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            }
+        }
+
+        setFragmentResultListener("reqUpdate") { _, bundle ->
+            val reqUpdateNew = bundle.getBoolean("reqUpdateNew")
+            if (reqUpdateNew) {
+                adapter.refresh()
             }
         }
 
