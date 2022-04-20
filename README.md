@@ -14,14 +14,14 @@ Backend выдан как исходные данные к разработке 
 - Приожение отслеживает количество новых постов на сервере и отображает кнопку загрузки
 - Поддержка прикрепление картинки к посту
 
-#СКРИНЫ!!
+![Posts](raw/preview/Posts.png)![NewPost](raw/preview/NewPost.png)
 
 ###2. Авторизация и регистрация
 - Для перехода к регистрации и авторизации используется меню в заголовке
 - Поддержка прикрепления аватарки к аккаунту
 - Данные авторизации сохраняются в SharedPreference
 
-#СКРИНЫ!!
+![Posts_menu](raw/preview/Posts_menu.png)![Registration](raw/preview/Registration.png)![Auth](raw/preview/Auth.png)
 
 #Используемые технологии
 - Kotlin + Coroutines
