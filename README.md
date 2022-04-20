@@ -23,6 +23,7 @@ Backend выдан как исходные данные к разработке 
 
 ![Posts_menu](raw/preview/Posts_menu.png)![Registration](raw/preview/Registration.png)![Auth](raw/preview/Auth.png)
 
+---
 #Используемые технологии
 - Kotlin + Coroutines
 - MVVM + Single Activity
