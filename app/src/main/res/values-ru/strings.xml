@@ -37,4 +37,8 @@
     <string name="dialog_accept">Да</string>
     <string name="dialog_decline">Нет</string>
     <string name="remove">Удалить</string>
+    <string name="some_text">Тут мог бы быть ваш текст</string>
+    <string name="today">Сегодня</string>
+    <string name="yesterday">Вчера</string>
+    <string name="more_old">Более старые</string>
 </resources>

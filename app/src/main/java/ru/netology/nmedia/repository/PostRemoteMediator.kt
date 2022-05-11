@@ -72,7 +72,8 @@ class PostRemoteMediator @Inject constructor(
                 }
             }
             postDao.insert(body.map(PostEntity::fromDto))
-            return MediatorResult.Success(true)
+
+            return MediatorResult.Success(body.isEmpty())
         } catch (e: Exception) {
             return MediatorResult.Error(e)
         }

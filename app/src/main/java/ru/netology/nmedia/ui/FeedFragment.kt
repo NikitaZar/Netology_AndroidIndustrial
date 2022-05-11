@@ -17,8 +17,9 @@ import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
+import ru.netology.nmedia.adapter.FeedAdapter
+import ru.netology.nmedia.adapter.FeedLoadStateAdapter
 import ru.netology.nmedia.adapter.OnInteractionListener
-import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
@@ -41,7 +42,7 @@ class FeedFragment : Fragment() {
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
-        val adapter = PostsAdapter(
+        val adapter = FeedAdapter(
             object : OnInteractionListener {
                 override fun onEdit(post: Post) {
                     viewModel.edit(post)
@@ -90,7 +91,9 @@ class FeedFragment : Fragment() {
             appAuth
         )
 
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateFooter(
+            footer = FeedLoadStateAdapter { adapter.retry() }
+        )
 
         lifecycleScope.launchWhenCreated {
             viewModel.data.collectLatest(adapter::submitData)
@@ -98,11 +101,6 @@ class FeedFragment : Fragment() {
 
         lifecycleScope.launchWhenCreated {
             adapter.loadStateFlow.collectLatest { state ->
-                binding.swipeRefresh.isRefreshing =
-                    state.refresh is LoadState.Loading ||
-                            state.prepend is LoadState.Loading ||
-                            state.append is LoadState.Loading
-
                 if (state.refresh is LoadState.Loading) {
                     binding.list.smoothScrollToPosition(0)
                 }
@@ -115,7 +113,7 @@ class FeedFragment : Fragment() {
             if (dataState.error) {
                 Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
                     .setAction(R.string.retry_loading) {
-                        viewModel.retryActon(dataState.actionType, dataState.actionId)
+                        viewModel.retryActon(dataState.actionType, dataState.actionId) { adapter.refresh() }
                     }.show()
             }
         }
@@ -136,6 +134,7 @@ class FeedFragment : Fragment() {
 
         binding.swipeRefresh.setOnRefreshListener {
             adapter.refresh()
+            binding.swipeRefresh.isRefreshing = false
         }
 
         viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
@@ -146,6 +145,7 @@ class FeedFragment : Fragment() {
         }
 
         binding.fabNewer.setOnClickListener {
+            adapter.refresh()
             binding.list.smoothScrollToPosition(0)
             binding.fabNewer.hide()
         }

@@ -14,7 +14,6 @@ interface PostRepository {
     suspend fun dislikeById(id: Long)
     suspend fun save(post: Post, retry: Boolean)
     suspend fun removeById(id: Long)
-    suspend fun getAll()
     suspend fun uploadMedia(upload: MediaUpload): Media
     suspend fun saveWithAttachment(post: Post, upload: MediaUpload, retry: Boolean)
     suspend fun updateUser(login: String, pass: String): AuthState

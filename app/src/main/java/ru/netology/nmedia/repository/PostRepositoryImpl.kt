@@ -35,24 +35,9 @@ class PostRepositoryImpl @Inject constructor(
     override val data: Flow<PagingData<Post>> = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = ENABLE_PLACE_HOLDERS),
         remoteMediator = mediator,
-        pagingSourceFactory = { dao.getAll() }
+        pagingSourceFactory = { dao.getAll() },
     ).flow.map { pagingData ->
         pagingData.map(PostEntity::toDto)
-    }
-
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAll()
-            checkResponse(response)
-            val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(body.toEntity())
-        } catch (e: ApiException) {
-            throw e
-        } catch (e: IOException) {
-            throw NetworkException
-        } catch (e: Exception) {
-            throw UnknownException
-        }
     }
 
     override fun getNewerCount(): Flow<Int> = flow {

@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Post(
     @SerializedName("id")
-    val id: Long,
+    override val id: Long,
     @SerializedName("author")
     val author: String,
     @SerializedName("authorId")
@@ -23,9 +23,7 @@ data class Post(
     val ownedByMe: Boolean = false,
     @Transient
     val isNotSent: Boolean = false,
-//    @Transient
-//    var isVisible: Boolean = false,
     @SerializedName("attachment")
     val attachment: Attachment? = null,
-)
+) : FeedItem
 

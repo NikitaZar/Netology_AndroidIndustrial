@@ -39,4 +39,8 @@
     <string name="dialog_accept">Yes</string>
     <string name="dialog_decline">No</string>
     <string name="remove">Remove</string>
+    <string name="some_text">Some text</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="more_old">More old</string>
 </resources>

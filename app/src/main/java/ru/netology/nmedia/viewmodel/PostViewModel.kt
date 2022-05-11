@@ -1,28 +1,38 @@
 package ru.netology.nmedia.viewmodel
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toFile
 import androidx.lifecycle.*
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.insertSeparators
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.TextItemSeparator
+import ru.netology.nmedia.enumeration.SeparatorTimeType
+import ru.netology.nmedia.hiltModules.CurrentTime
 import ru.netology.nmedia.model.ActionType
-import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
+import java.text.SimpleDateFormat
 import javax.inject.Inject
+import kotlin.random.Random
 
 private val empty = Post(
     id = 0,
@@ -38,8 +48,10 @@ private val empty = Post(
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PostViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val repository: PostRepository,
-    private val auth: AppAuth
+    private val auth: AppAuth,
+    private val currentTime: CurrentTime
 ) : ViewModel() {
 
     private val _dataState = MutableLiveData(FeedModelState())
@@ -47,9 +59,39 @@ class PostViewModel @Inject constructor(
     private val cached
         get() = repository.data.cachedIn(viewModelScope)
 
-    val data: Flow<PagingData<Post>> = auth.authStateFlow
+    @SuppressLint("SimpleDateFormat")
+    val data: Flow<PagingData<FeedItem>> = auth.authStateFlow
         .flatMapLatest {
-            cached
+            cached.map { pagingData ->
+                pagingData.insertSeparators(
+                    generator = { before, after ->
+                        val beforeTime = currentTime.getDaySeparatorType(before?.published?.toLong())
+                        val afterTime = currentTime.getDaySeparatorType(after?.published?.toLong())
+
+                        val text = when {
+                            beforeTime == SeparatorTimeType.NULL && afterTime == SeparatorTimeType.TODAY ->
+                                context.getString(R.string.today)
+                            beforeTime == SeparatorTimeType.TODAY && afterTime == SeparatorTimeType.YESTERDAY ->
+                                context.getString(R.string.yesterday)
+                            beforeTime == SeparatorTimeType.YESTERDAY && afterTime == SeparatorTimeType.MORE_OLD ->
+                                context.getString(R.string.more_old)
+                            else -> null
+                        }
+                        text?.let { TextItemSeparator(Random.nextLong(), it) } ?: run { null }
+                    }
+                )
+                    .map { feedItem ->
+                        when (feedItem) {
+                            is Post -> {
+                                feedItem.copy(
+                                    published = SimpleDateFormat("dd.MM.yy HH:mm:ss")
+                                        .format(feedItem.published.toLong() * 1000L)
+                                )
+                            }
+                            is TextItemSeparator -> feedItem
+                        }
+                    }
+            }
         }
 
     val dataState: LiveData<FeedModelState>
@@ -73,20 +115,10 @@ class PostViewModel @Inject constructor(
         .catch { e -> e.printStackTrace() }
         .asLiveData(Dispatchers.Default)
 
-    //TODO remove next time
-    fun loadPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(loading = true)
-            repository.getAll()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true, actionType = ActionType.LOAD)
-        }
-    }
+    fun retryActon(actionType: ActionType, id: Long, load: () -> Unit) {
 
-    fun retryActon(actionType: ActionType, id: Long) {
         when (actionType) {
-            ActionType.LOAD -> loadPosts()
+            ActionType.LOAD -> load
             ActionType.DISLIKE -> dislikeById(id)
             ActionType.LIKE -> likeById(id)
             ActionType.REMOVE -> removeById(id)
@@ -134,7 +166,7 @@ class PostViewModel @Inject constructor(
         if (edited.value?.content == text) {
             return
         }
-        edited.value = edited.value?.copy(content = text)
+        edited.value = edited.value?.copy(content = text, published = currentTime.currentTime.toString())
     }
 
     fun likeById(id: Long) = viewModelScope.launch {
@@ -209,3 +241,4 @@ class PostViewModel @Inject constructor(
         }
     }
 }
+

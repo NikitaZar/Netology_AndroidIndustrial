@@ -112,7 +112,7 @@ class NewPostFragment : Fragment() {
             if (state.error) {
                 Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_INDEFINITE)
                     .setAction(R.string.retry_loading) {
-                        postVewModel.retryActon(state.actionType, state.actionId)
+                        postVewModel.retryActon(state.actionType, state.actionId) { return@retryActon }
                     }.show()
             }
         }
