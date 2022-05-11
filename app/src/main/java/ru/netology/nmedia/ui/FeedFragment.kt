@@ -2,25 +2,29 @@ package ru.netology.nmedia.ui
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.*
-import androidx.core.view.*
-import androidx.fragment.app.*
-import androidx.lifecycle.asLiveData
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
-import ru.netology.nmedia.ui.FullscreenAttachmentFragment.Companion.url
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.ui.FullscreenAttachmentFragment.Companion.url
 import ru.netology.nmedia.viewmodel.PostViewModel
 import javax.inject.Inject
-import androidx.paging.LoadState
-import kotlinx.coroutines.flow.collectLatest
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
@@ -105,25 +109,6 @@ class FeedFragment : Fragment() {
             }
         }
 
-        //TODO check
-//        adapter.addLoadStateListener { loadState ->
-//            binding.emptyText.isVisible =
-//                (loadState.source.refresh is LoadState.NotLoading &&
-//                        loadState.append.endOfPaginationReached && adapter.itemCount < 1)
-//        }
-
-        //TODO: show emptyText
-//        viewModel.data.asLiveData().observe(viewLifecycleOwner) { data ->
-//            val isNewPost = (adapter.itemCount < data.posts.size) && (adapter.itemCount > 0)
-//            adapter.submitList(data.posts) {
-//                if (isNewPost) {
-//                    binding.list.smoothScrollToPosition(0)
-//                }
-//            }
-
-//            binding.emptyText.isVisible = data.empty
-//    }
-
         viewModel.dataState.observe(viewLifecycleOwner) { dataState ->
             binding.progress.isVisible = dataState.loading
 
@@ -142,18 +127,25 @@ class FeedFragment : Fragment() {
             }
         }
 
-        binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
+        setFragmentResultListener("reqUpdate") { _, bundle ->
+            val reqUpdateNew = bundle.getBoolean("reqUpdateNew")
+            if (reqUpdateNew) {
+                adapter.refresh()
+            }
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
-            if (count > 0) {
+        binding.swipeRefresh.setOnRefreshListener {
+            adapter.refresh()
+        }
+
+        viewModel.newerCount.observe(viewLifecycleOwner) { newerCount ->
+            Log.i("newerCount", newerCount.toString())
+            if (newerCount > 20) {
                 binding.fabNewer.show()
             }
         }
 
         binding.fabNewer.setOnClickListener {
-            viewModel.asVisibleAll()
             binding.list.smoothScrollToPosition(0)
             binding.fabNewer.hide()
         }

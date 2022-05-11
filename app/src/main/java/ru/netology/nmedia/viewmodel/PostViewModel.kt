@@ -69,18 +69,11 @@ class PostViewModel @Inject constructor(
     val avatar: LiveData<PhotoModel>
         get() = _avatar
 
-    init {
-        loadPosts()
-    }
+    val newerCount: LiveData<Int> = repository.getNewerCount()
+        .catch { e -> e.printStackTrace() }
+        .asLiveData(Dispatchers.Default)
 
-    //TODO in 03_arch with RemoteMediator
-    val newerCount: LiveData<Long> = MutableLiveData(empty.id)  //just Mock
-    //        data.switchMap {
-////        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
-////            .catch { e -> e.printStackTrace() }
-////            .asLiveData(Dispatchers.Default)
-//    }
-
+    //TODO remove next time
     fun loadPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(loading = true)
@@ -145,31 +138,30 @@ class PostViewModel @Inject constructor(
     }
 
     fun likeById(id: Long) = viewModelScope.launch {
-        //TODO in 03_arch with RemoteMediator
-//        try {
-//            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
-//            if (isNotSent) {
-//                return@launch
-//            }
-//            repository.likeById(id)
-//        } catch (e: Exception) {
-//            _dataState.value =
-//                FeedModelState(error = true, actionType = ActionType.LIKE, actionId = id)
-//        }
+        try {
+            val isNotSent = repository.getPostById(id).isNotSent
+            Log.i("isNotSent", isNotSent.toString())
+            if (isNotSent) {
+                return@launch
+            }
+            repository.likeById(id)
+        } catch (e: Exception) {
+            _dataState.value =
+                FeedModelState(error = true, actionType = ActionType.LIKE, actionId = id)
+        }
     }
 
     fun dislikeById(id: Long) = viewModelScope.launch {
-        //TODO in 03_arch with RemoteMediator
-//        try {
-//            val isNotSent = data.value?.posts?.first { it.id == id }?.isNotSent ?: false
-//            if (isNotSent) {
-//                return@launch
-//            }
-//            repository.dislikeById(id)
-//        } catch (e: Exception) {
-//            _dataState.value =
-//                FeedModelState(error = true, actionType = ActionType.DISLIKE, actionId = id)
-//        }
+        try {
+            val isNotSent = repository.getPostById(id).isNotSent
+            if (isNotSent) {
+                return@launch
+            }
+            repository.dislikeById(id)
+        } catch (e: Exception) {
+            _dataState.value =
+                FeedModelState(error = true, actionType = ActionType.DISLIKE, actionId = id)
+        }
     }
 
     fun removeById(id: Long) = viewModelScope.launch {
@@ -180,8 +172,6 @@ class PostViewModel @Inject constructor(
                 FeedModelState(error = true, actionType = ActionType.REMOVE, actionId = id)
         }
     }
-
-    fun asVisibleAll() = viewModelScope.launch { repository.asVisibleAll() }
 
     fun changePhoto(uri: Uri?, file: File?) {
         _photo.value = PhotoModel(uri, file)

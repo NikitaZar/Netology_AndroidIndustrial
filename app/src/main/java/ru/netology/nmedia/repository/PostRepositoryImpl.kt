@@ -1,8 +1,7 @@
 package ru.netology.nmedia.repository
 
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
+import android.util.Log
+import androidx.paging.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -16,10 +15,7 @@ import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.enumeration.AttachmentType
-import ru.netology.nmedia.errors.ApiException
-import ru.netology.nmedia.errors.AppError
-import ru.netology.nmedia.errors.NetworkException
-import ru.netology.nmedia.errors.UnknownException
+import ru.netology.nmedia.errors.*
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,24 +24,28 @@ import javax.inject.Singleton
 const val PAGE_SIZE = 5
 const val ENABLE_PLACE_HOLDERS = false
 
-
 @Singleton
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    mediator: PostRemoteMediator
 ) : PostRepository {
 
+    @OptIn(ExperimentalPagingApi::class)
     override val data: Flow<PagingData<Post>> = Pager(
         config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = ENABLE_PLACE_HOLDERS),
-        pagingSourceFactory = { PostPagingSource(apiService) },
-    ).flow
+        remoteMediator = mediator,
+        pagingSourceFactory = { dao.getAll() }
+    ).flow.map { pagingData ->
+        pagingData.map(PostEntity::toDto)
+    }
 
     override suspend fun getAll() {
         try {
             val response = apiService.getAll()
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(body.toEntity().onEach { it.isVisible = true })
+            dao.insert(body.toEntity())
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
@@ -55,10 +55,10 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getNewerCount(id: Long): Flow<Int> = flow {
+    override fun getNewerCount(): Flow<Int> = flow {
         while (true) {
             delay(10_000L)
-            val response = apiService.getNewer(id)
+            val response = apiService.getNewer(getMaxId())
             if (!response.isSuccessful) {
                 throw ApiException(response.code(), response.message())
             }
@@ -75,7 +75,7 @@ class PostRepositoryImpl @Inject constructor(
             val response = apiService.likeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body).also { it.isVisible = true })
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
@@ -90,7 +90,7 @@ class PostRepositoryImpl @Inject constructor(
             val response = apiService.dislikeById(id)
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body).also { it.isVisible = true })
+            dao.insert(PostEntity.fromDto(body))
         } catch (e: ApiException) {
             throw e
         } catch (e: IOException) {
@@ -104,12 +104,12 @@ class PostRepositoryImpl @Inject constructor(
         try {
             var newId = 0L
             if (!retry) {
-                newId = dao.insert(PostEntity.fromDto(post.copy(isNotSent = true, isVisible = true)))
+                newId = dao.insert(PostEntity.fromDto(post.copy(isNotSent = true)))
             }
             val response = apiService.save(post.copy(id = 0))
             checkResponse(response)
             val body = response.body() ?: throw ApiException(response.code(), response.message())
-            dao.insert(PostEntity.fromDto(body).also { it.isVisible = true })
+            dao.insert(PostEntity.fromDto(body))
 
             if (!retry) {
                 dao.removeById(newId)
@@ -136,8 +136,6 @@ class PostRepositoryImpl @Inject constructor(
             throw UnknownException
         }
     }
-
-    override suspend fun asVisibleAll() = dao.asVisibleAll()
 
     override suspend fun uploadMedia(upload: MediaUpload): Media {
         try {
@@ -208,6 +206,10 @@ class PostRepositoryImpl @Inject constructor(
         checkResponse(response)
         return response.body() ?: throw ApiException(response.code(), response.message())
     }
+
+    override suspend fun getPostById(id: Long) = dao.getPostById(id)?.toDto() ?: throw DbError
+
+    override suspend fun getMaxId() = dao.getPostMaxId()?.toDto()?.id ?: throw DbError
 }
 
 private fun checkResponse(response: Response<out Any>) {
