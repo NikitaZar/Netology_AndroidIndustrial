@@ -116,6 +116,7 @@ class PostViewModel @Inject constructor(
         .asLiveData(Dispatchers.Default)
 
     fun retryActon(actionType: ActionType, id: Long, load: () -> Unit) {
+
         when (actionType) {
             ActionType.LOAD -> load
             ActionType.DISLIKE -> dislikeById(id)

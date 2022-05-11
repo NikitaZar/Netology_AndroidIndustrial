@@ -24,7 +24,6 @@ import javax.inject.Singleton
 const val PAGE_SIZE = 5
 const val ENABLE_PLACE_HOLDERS = false
 
-
 @Singleton
 class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,

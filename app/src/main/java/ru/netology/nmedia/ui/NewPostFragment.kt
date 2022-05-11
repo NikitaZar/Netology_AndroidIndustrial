@@ -102,6 +102,7 @@ class NewPostFragment : Fragment() {
             AndroidUtils.hideKeyboard(requireView())
             findNavController().navigateUp()
         }
+
         postVewModel.postCreated.observe(viewLifecycleOwner) {
             val reqUpdateNew = true
             setFragmentResult("reqUpdate", bundleOf("reqUpdateNew" to reqUpdateNew))
